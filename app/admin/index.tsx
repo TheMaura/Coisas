@@ -9,21 +9,39 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  StatusBar,
 } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, Redirect } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Legend } from '@/types';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useAuth } from '@/contexts/AuthContext';
+import { AnimatedCard } from '@/components/AnimatedCard';
+import { Theme } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { GradientButton } from '@/components/GradientButton';
+import { getPlayerImageUrl } from '@/utils/imageUtils';
 
 export default function AdminScreen() {
+  const { profile, loading: authLoading } = useAuth();
   const [legends, setLegends] = useState<Legend[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Verificar se é admin
+  useEffect(() => {
+    if (!authLoading && (!profile || !profile.is_admin)) {
+      Alert.alert('Acesso Negado', 'Você não tem permissão para acessar esta área.');
+      router.replace('/(tabs)/home');
+    }
+  }, [profile, authLoading]);
+
   useFocusEffect(
     React.useCallback(() => {
-      fetchLegends();
-    }, [])
+      if (profile?.is_admin) {
+        fetchLegends();
+      }
+    }, [profile])
   );
 
   const fetchLegends = async () => {
@@ -76,64 +94,89 @@ export default function AdminScreen() {
     );
   };
 
-  const renderLegendItem = ({ item }: { item: Legend }) => (
-    <View style={styles.legendCard}>
-      {item.image_url && (
-        <Image source={{ uri: item.image_url }} style={styles.legendImage} />
-      )}
-      <View style={styles.legendInfo}>
-        <Text style={styles.legendName}>{item.name}</Text>
-        <Text style={styles.legendDetails}>
-          {item.nationality || ''} {item.nationality && item.position ? '•' : ''} {item.position || ''}
-        </Text>
+  const renderLegendItem = ({ item, index }: { item: Legend; index: number }) => {
+    const imageUrl = item.image_url || getPlayerImageUrl(item.name);
+    
+    return (
+      <AnimatedCard delay={index * 50} style={styles.legendCard}>
+        <View style={styles.cardContent}>
+          <Image source={{ uri: imageUrl }} style={styles.legendImage} />
+          <View style={styles.legendInfo}>
+            <Text style={styles.legendName}>{item.name}</Text>
+            <Text style={styles.legendDetails}>
+              {item.nationality || ''} {item.nationality && item.position ? '•' : ''} {item.position || ''}
+            </Text>
+          </View>
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push(`/admin/edit/${item.id}`)}
+            >
+              <MaterialIcons name="edit" size={24} color={Theme.colors.primaryLight} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => deleteLegend(item)}
+            >
+              <MaterialIcons name="delete" size={24} color={Theme.colors.error} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </AnimatedCard>
+    );
+  };
+
+  if (authLoading || loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <StatusBar barStyle="light-content" />
+        <ActivityIndicator size="large" color={Theme.colors.primary} />
       </View>
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => router.push(`/admin/edit/${item.id}`)}
-        >
-          <MaterialIcons name="edit" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => deleteLegend(item)}
-        >
-          <MaterialIcons name="delete" size={24} color="#ff3b30" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  }
+
+  if (!profile?.is_admin) {
+    return <Redirect href="/(tabs)/home" />;
+  }
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => router.push('/admin/create')}
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={Theme.colors.gradientDark}
+        style={styles.header}
       >
-        <MaterialIcons name="add" size={24} color="#fff" />
-        <Text style={styles.addButtonText}>Nova Lenda</Text>
-      </TouchableOpacity>
+        <Text style={styles.headerTitle}>Painel Admin</Text>
+        <Text style={styles.headerSubtitle}>Gerenciar Lendas</Text>
+      </LinearGradient>
 
-      {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-        </View>
-      ) : (
-        <FlatList
-          data={legends}
-          renderItem={renderLegendItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Nenhuma lenda cadastrada</Text>
-            </View>
-          }
-        />
-      )}
+      <GradientButton
+        title="Nova Lenda"
+        onPress={() => router.push('/admin/create')}
+        variant="football"
+        style={styles.addButton}
+      />
+
+      <FlatList
+        data={legends}
+        renderItem={renderLegendItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Theme.colors.primary}
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <MaterialIcons name="sports-soccer" size={64} color={Theme.colors.textTertiary} />
+            <Text style={styles.emptyText}>Nenhuma lenda cadastrada</Text>
+          </View>
+        }
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }
@@ -141,80 +184,77 @@ export default function AdminScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#007AFF',
-    padding: 15,
-    margin: 15,
-    borderRadius: 10,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
+    backgroundColor: Theme.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Theme.colors.background,
+  },
+  header: {
+    paddingTop: 60,
+    paddingBottom: Theme.spacing.lg,
+    paddingHorizontal: Theme.spacing.md,
+  },
+  headerTitle: {
+    ...Theme.typography.h1,
+    fontSize: 28,
+    marginBottom: Theme.spacing.xs,
+  },
+  headerSubtitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.textSecondary,
+  },
+  addButton: {
+    margin: Theme.spacing.md,
+    marginTop: Theme.spacing.lg,
   },
   listContent: {
-    padding: 10,
+    padding: Theme.spacing.md,
   },
   legendCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 15,
-    overflow: 'hidden',
+    marginBottom: Theme.spacing.md,
+  },
+  cardContent: {
     flexDirection: 'row',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    alignItems: 'center',
   },
   legendImage: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#ddd',
+    width: 80,
+    height: 80,
+    borderRadius: Theme.borderRadius.md,
+    backgroundColor: Theme.colors.backgroundLight,
   },
   legendInfo: {
     flex: 1,
-    padding: 15,
-    justifyContent: 'center',
+    padding: Theme.spacing.md,
   },
   legendName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 5,
+    ...Theme.typography.h3,
+    marginBottom: Theme.spacing.xs,
   },
   legendDetails: {
-    fontSize: 14,
-    color: '#666',
+    ...Theme.typography.caption,
+    color: Theme.colors.textSecondary,
   },
   actions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
+    gap: Theme.spacing.sm,
   },
   actionButton: {
-    padding: 10,
+    padding: Theme.spacing.sm,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: Theme.spacing.xxl,
+    minHeight: 400,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    ...Theme.typography.h3,
+    marginTop: Theme.spacing.md,
+    color: Theme.colors.textSecondary,
   },
 });
-

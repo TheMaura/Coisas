@@ -3,16 +3,19 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
-  Image,
   ActivityIndicator,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Favorite } from '@/types';
+import { Theme } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
+import { LegendCard } from '@/components/LegendCard';
 
 export default function FavoritesScreen() {
   const { user } = useAuth();
@@ -51,75 +54,81 @@ export default function FavoritesScreen() {
     fetchFavorites();
   };
 
-  const removeFavorite = async (favoriteId: string) => {
-    try {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('id', favoriteId);
-
-      if (error) throw error;
-      fetchFavorites();
-    } catch (error) {
-      console.error('Error removing favorite:', error);
-    }
-  };
-
-  const renderFavoriteItem = ({ item }: { item: Favorite }) => {
-    const legend = (item as any).legends as any;
-    if (!legend) return null;
-
+  const renderFavoriteItem = ({ item, index }: { item: Favorite; index: number }) => {
+    if (!item.legends) return null;
+    
     return (
-      <TouchableOpacity
-        style={styles.favoriteCard}
-        onPress={() => router.push(`/legend/${legend.id}`)}
-      >
-        {legend.image_url && (
-          <Image source={{ uri: legend.image_url }} style={styles.legendImage} />
-        )}
-        <View style={styles.legendInfo}>
-          <Text style={styles.legendName}>{legend.name}</Text>
-          <Text style={styles.legendNationality}>{legend.nationality}</Text>
-          <Text style={styles.legendPosition}>{legend.position}</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.removeButton}
-          onPress={() => removeFavorite(item.id)}
-        >
-          <Text style={styles.removeButtonText}>Remover</Text>
-        </TouchableOpacity>
-      </TouchableOpacity>
+      <LegendCard
+        legend={item.legends as any}
+        onPress={() => router.push(`/legend/${item.legends.id}`)}
+        delay={index * 50}
+      />
     );
   };
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
+        <View style={styles.emptyContainer}>
+          <MaterialIcons name="favorite-border" size={64} color={Theme.colors.textTertiary} />
+          <Text style={styles.emptyText}>Faça login para ver seus favoritos</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <StatusBar barStyle="light-content" />
+        <ActivityIndicator size="large" color={Theme.colors.primary} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={Theme.colors.gradientDark}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.headerTitle}>Favoritos</Text>
+            <Text style={styles.headerSubtitle}>
+              {favorites.length} {favorites.length === 1 ? 'lenda favoritada' : 'lendas favoritadas'}
+            </Text>
+          </View>
+          <View style={styles.iconContainer}>
+            <MaterialIcons name="favorite" size={32} color={Theme.colors.error} />
+          </View>
+        </View>
+      </LinearGradient>
+
       <FlatList
         data={favorites}
         renderItem={renderFavoriteItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Theme.colors.primary}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              Você ainda não tem favoritos
-            </Text>
+            <MaterialIcons name="favorite-border" size={64} color={Theme.colors.textTertiary} />
+            <Text style={styles.emptyText}>Nenhum favorito ainda</Text>
             <Text style={styles.emptySubtext}>
-              Explore as lendas e adicione às suas favoritas
+              Adicione lendas aos favoritos para encontrá-las facilmente
             </Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -128,78 +137,60 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Theme.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Theme.colors.background,
+  },
+  header: {
+    paddingTop: 60,
+    paddingBottom: Theme.spacing.lg,
+    paddingHorizontal: Theme.spacing.md,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    ...Theme.typography.h1,
+    fontSize: 28,
+    marginBottom: Theme.spacing.xs,
+  },
+  headerSubtitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.textSecondary,
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 59, 48, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContent: {
-    padding: 10,
-  },
-  favoriteCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 15,
-    overflow: 'hidden',
-    flexDirection: 'row',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  legendImage: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#ddd',
-  },
-  legendInfo: {
-    flex: 1,
-    padding: 15,
-    justifyContent: 'center',
-  },
-  legendName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 5,
-  },
-  legendNationality: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 3,
-  },
-  legendPosition: {
-    fontSize: 14,
-    color: '#007AFF',
-  },
-  removeButton: {
-    justifyContent: 'center',
-    paddingHorizontal: 15,
-  },
-  removeButtonText: {
-    color: '#ff3b30',
-    fontSize: 14,
-    fontWeight: 'bold',
+    padding: Theme.spacing.md,
+    paddingTop: Theme.spacing.md,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: Theme.spacing.xxl,
+    minHeight: 400,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 8,
+    ...Theme.typography.h3,
+    marginTop: Theme.spacing.md,
+    marginBottom: Theme.spacing.sm,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#666',
+    ...Theme.typography.body,
+    color: Theme.colors.textTertiary,
     textAlign: 'center',
   },
 });
-

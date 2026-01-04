@@ -1,12 +1,22 @@
-import { useEffect } from 'react';
-import { Redirect } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Redirect, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 export default function Index() {
   const { session, loading } = useAuth();
+  const [isReady, setIsReady] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    // Aguardar um pouco para garantir que a sessão está carregada
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [session, loading]);
+
+  if (loading || !isReady) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#007AFF" />

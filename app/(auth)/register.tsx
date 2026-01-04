@@ -39,12 +39,22 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      await signUp(email, password, name || undefined);
-      Alert.alert('Sucesso', 'Conta criada com sucesso! Faça login para continuar.', [
-        { text: 'OK', onPress: () => router.replace('/(auth)/login') },
-      ]);
+      const result = await signUp(email, password, name || undefined);
+      
+      if (result?.requiresEmailVerification) {
+        Alert.alert(
+          'Verifique seu email',
+          'Enviamos um link de verificação para seu email. Por favor, verifique antes de fazer login.',
+          [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+        );
+      } else {
+        Alert.alert('Sucesso', 'Conta criada com sucesso! Faça login para continuar.', [
+          { text: 'OK', onPress: () => router.replace('/(auth)/login') },
+        ]);
+      }
     } catch (error: any) {
-      Alert.alert('Erro ao cadastrar', error.message);
+      console.error('Registration error:', error);
+      Alert.alert('Erro ao cadastrar', error.message || 'Ocorreu um erro ao criar sua conta');
     } finally {
       setLoading(false);
     }

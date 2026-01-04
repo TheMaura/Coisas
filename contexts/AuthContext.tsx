@@ -9,7 +9,7 @@ interface AuthContextType {
   profile: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name?: string) => Promise<void>;
+  signUp: (email: string, password: string, name?: string) => Promise<{ requiresEmailVerification?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
@@ -70,31 +70,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    if (error) throw error;
+    
+    if (error) {
+      // Melhorar mensagens de erro
+      let errorMessage = error.message;
+      
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Email ou senha incorretos';
+      } else if (error.message.includes('Email not confirmed') || error.message.includes('email_not_confirmed')) {
+        errorMessage = 'Por favor, verifique seu email antes de fazer login. Verifique sua caixa de entrada e spam.';
+      } else if (error.status === 400) {
+        errorMessage = 'Dados inválidos. Verifique seu email e senha';
+      }
+      
+      const customError = new Error(errorMessage);
+      (customError as any).originalError = error;
+      throw customError;
+    }
+    
+    // Aguardar um pouco para garantir que a sessão está estabelecida
+    if (data.session) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
   };
 
   const signUp = async (email: string, password: string, name?: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          full_name: name || null,
+        },
+        emailRedirectTo: undefined, // Não usar redirect para mobile
+      },
     });
-    if (error) throw error;
+    
+    if (error) {
+      let errorMessage = error.message;
+      
+      if (error.message.includes('User already registered')) {
+        errorMessage = 'Este email já está cadastrado. Faça login ou recupere sua senha';
+      } else if (error.status === 400) {
+        errorMessage = 'Dados inválidos. Verifique seu email e senha (mínimo 6 caracteres)';
+      }
+      
+      const customError = new Error(errorMessage);
+      (customError as any).originalError = error;
+      throw customError;
+    }
 
     // O perfil é criado automaticamente pelo trigger no Supabase
     // Apenas atualizamos o nome se fornecido
     if (data.user && name) {
       // Aguardar um pouco para o trigger criar o perfil
       setTimeout(async () => {
-        await supabase
-          .from('profiles')
-          .update({ full_name: name })
-          .eq('id', data.user!.id);
+        try {
+          await supabase
+            .from('profiles')
+            .update({ full_name: name })
+            .eq('id', data.user!.id);
+        } catch (err) {
+          console.error('Error updating profile name:', err);
+        }
       }, 500);
     }
+    
+    // Se o email precisa ser verificado, retornar informação
+    if (data.user && !data.session) {
+      return { requiresEmailVerification: true };
+    }
+    
+    return { requiresEmailVerification: false };
   };
 
   const signOut = async () => {

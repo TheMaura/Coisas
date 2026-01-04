@@ -3,14 +3,20 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StatusBar,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { GradientButton } from '@/components/GradientButton';
+import { Theme } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
+import { AnimatedCard } from '@/components/AnimatedCard';
+import { Alert } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -27,9 +33,13 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signIn(email, password);
-      router.replace('/(tabs)/home');
+      setTimeout(() => {
+        router.replace('/(tabs)/home');
+      }, 100);
     } catch (error: any) {
-      Alert.alert('Erro ao fazer login', error.message);
+      console.error('Login error:', error);
+      const errorMessage = error.message || 'Ocorreu um erro ao fazer login';
+      Alert.alert('Erro ao fazer login', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -40,54 +50,71 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <Text style={styles.title}>Futebol Legends</Text>
-        <Text style={styles.subtitle}>Entre para explorar as lendas</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="E-mail"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-        />
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={Theme.colors.gradientDark}
+        style={styles.background}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.buttonText}>
-            {loading ? 'Entrando...' : 'Entrar'}
-          </Text>
-        </TouchableOpacity>
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <MaterialIcons name="sports-soccer" size={64} color={Theme.colors.footballLight} />
+            </View>
+            <Text style={styles.title}>Futebol Legends</Text>
+            <Text style={styles.subtitle}>Entre para explorar as lendas</Text>
+          </View>
 
-        <Link href="/(auth)/forgot-password" asChild>
-          <TouchableOpacity>
-            <Text style={styles.linkText}>Esqueceu a senha?</Text>
-          </TouchableOpacity>
-        </Link>
+          <AnimatedCard style={styles.card}>
+            <View style={styles.inputContainer}>
+              <MaterialIcons name="email" size={20} color={Theme.colors.textSecondary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="E-mail"
+                placeholderTextColor={Theme.colors.textTertiary}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
+            </View>
 
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>Não tem uma conta? </Text>
-          <Link href="/(auth)/register" asChild>
-            <TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <MaterialIcons name="lock" size={20} color={Theme.colors.textSecondary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Senha"
+                placeholderTextColor={Theme.colors.textTertiary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+              />
+            </View>
+
+            <GradientButton
+              title={loading ? 'Entrando...' : 'Entrar'}
+              onPress={handleLogin}
+              loading={loading}
+              style={styles.button}
+            />
+
+            <Link href="/(auth)/forgot-password" asChild>
+              <Text style={styles.linkText}>Esqueceu a senha?</Text>
+            </Link>
+          </AnimatedCard>
+
+          <View style={styles.signupContainer}>
+            <Text style={styles.signupText}>Não tem uma conta? </Text>
+            <Link href="/(auth)/register" asChild>
               <Text style={styles.signupLink}>Cadastre-se</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-      </View>
+            </Link>
+          </View>
+        </ScrollView>
+      </LinearGradient>
     </KeyboardAvoidingView>
   );
 }
@@ -95,69 +122,82 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-  content: {
+  background: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: Theme.spacing.md,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: Theme.spacing.xl,
+  },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    ...Theme.typography.h1,
+    fontSize: 36,
+    marginBottom: Theme.spacing.sm,
     textAlign: 'center',
-    marginBottom: 8,
-    color: '#1a1a1a',
   },
   subtitle: {
-    fontSize: 16,
+    ...Theme.typography.body,
+    color: Theme.colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 40,
-    color: '#666',
+  },
+  card: {
+    marginBottom: Theme.spacing.lg,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.backgroundLight,
+    borderRadius: Theme.borderRadius.md,
+    marginBottom: Theme.spacing.md,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+  },
+  inputIcon: {
+    marginLeft: Theme.spacing.md,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
+    flex: 1,
+    padding: Theme.spacing.md,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    color: Theme.colors.text,
   },
   button: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    marginTop: Theme.spacing.md,
+    marginBottom: Theme.spacing.md,
   },
   linkText: {
-    color: '#007AFF',
+    ...Theme.typography.body,
+    color: Theme.colors.primaryLight,
     textAlign: 'center',
-    marginTop: 15,
-    fontSize: 14,
+    marginTop: Theme.spacing.sm,
   },
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 30,
+    marginTop: Theme.spacing.lg,
   },
   signupText: {
-    color: '#666',
-    fontSize: 14,
+    ...Theme.typography.body,
+    color: Theme.colors.textSecondary,
   },
   signupLink: {
-    color: '#007AFF',
-    fontSize: 14,
+    ...Theme.typography.body,
+    color: Theme.colors.primaryLight,
     fontWeight: 'bold',
   },
 });
-

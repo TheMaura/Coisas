@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  StatusBar,
   Linking,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -16,6 +17,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Legend } from '@/types';
 import * as Sharing from 'expo-sharing';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Theme } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { getPlayerImageUrl } from '@/utils/imageUtils';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 
 export default function LegendDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,6 +32,8 @@ export default function LegendDetailScreen() {
   const [legend, setLegend] = useState<Legend | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+
+  const scale = useSharedValue(1);
 
   useEffect(() => {
     fetchLegend();
@@ -106,7 +117,7 @@ export default function LegendDetailScreen() {
       const isAvailable = await Sharing.isAvailableAsync();
       if (isAvailable) {
         await Sharing.shareAsync(legend.image_url || '', {
-          message: `Conheça ${legend.name}: ${legend.biography.substring(0, 100)}...`,
+          message: `Conheça ${legend.name}: ${legend.biography?.substring(0, 100)}...`,
         });
       } else {
         Alert.alert('Erro', 'Compartilhamento não disponível neste dispositivo');
@@ -116,10 +127,23 @@ export default function LegendDetailScreen() {
     }
   };
 
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.9);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1);
+  };
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <StatusBar barStyle="light-content" />
+        <ActivityIndicator size="large" color={Theme.colors.primary} />
       </View>
     );
   }
@@ -127,16 +151,31 @@ export default function LegendDetailScreen() {
   if (!legend) {
     return (
       <View style={styles.centerContainer}>
+        <StatusBar barStyle="light-content" />
+        <MaterialIcons name="error-outline" size={64} color={Theme.colors.error} />
         <Text style={styles.errorText}>Lenda não encontrada</Text>
       </View>
     );
   }
 
+  const imageUrl = legend.image_url || getPlayerImageUrl(legend.name);
+
   return (
     <ScrollView style={styles.container}>
-      {legend.image_url && (
-        <Image source={{ uri: legend.image_url }} style={styles.headerImage} />
-      )}
+      <StatusBar barStyle="light-content" />
+      <View style={styles.imageContainer}>
+        <Image source={{ uri: imageUrl }} style={styles.headerImage} resizeMode="cover" />
+        <LinearGradient
+          colors={['transparent', Theme.colors.background]}
+          style={styles.imageGradient}
+        />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={Theme.colors.text} />
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.content}>
         <View style={styles.header}>
@@ -147,49 +186,80 @@ export default function LegendDetailScreen() {
             )}
           </View>
           <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={toggleFavorite}
-            >
-              <MaterialIcons
-                name={isFavorite ? 'favorite' : 'favorite-border'}
-                size={28}
-                color={isFavorite ? '#ff3b30' : '#666'}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-              <MaterialIcons name="share" size={28} color="#666" />
-            </TouchableOpacity>
+            <Animated.View style={animatedButtonStyle}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={toggleFavorite}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+              >
+                <MaterialIcons
+                  name={isFavorite ? 'favorite' : 'favorite-border'}
+                  size={28}
+                  color={isFavorite ? Theme.colors.error : Theme.colors.textSecondary}
+                />
+              </TouchableOpacity>
+            </Animated.View>
+            <Animated.View style={animatedButtonStyle}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleShare}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+              >
+                <MaterialIcons name="share" size={28} color={Theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </Animated.View>
           </View>
         </View>
 
         <View style={styles.infoSection}>
-          <View style={styles.infoRow}>
-            <MaterialIcons name="flag" size={20} color="#007AFF" />
-            <Text style={styles.infoText}>{legend.nationality}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <MaterialIcons name="sports-soccer" size={20} color="#007AFF" />
-            <Text style={styles.infoText}>{legend.position}</Text>
-          </View>
+          {legend.nationality && (
+            <View style={styles.infoCard}>
+              <MaterialIcons name="flag" size={24} color={Theme.colors.primaryLight} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Nacionalidade</Text>
+                <Text style={styles.infoText}>{legend.nationality}</Text>
+              </View>
+            </View>
+          )}
+          {legend.position && (
+            <View style={styles.infoCard}>
+              <MaterialIcons name="sports-soccer" size={24} color={Theme.colors.footballLight} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Posição</Text>
+                <Text style={styles.infoText}>{legend.position}</Text>
+              </View>
+            </View>
+          )}
           {legend.current_club && (
-            <View style={styles.infoRow}>
-              <MaterialIcons name="groups" size={20} color="#007AFF" />
-              <Text style={styles.infoText}>{legend.current_club}</Text>
+            <View style={styles.infoCard}>
+              <MaterialIcons name="groups" size={24} color={Theme.colors.primaryLight} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Clube Atual</Text>
+                <Text style={styles.infoText}>{legend.current_club}</Text>
+              </View>
             </View>
           )}
           {legend.birth_date && (
-            <View style={styles.infoRow}>
-              <MaterialIcons name="cake" size={20} color="#007AFF" />
-              <Text style={styles.infoText}>{new Date(legend.birth_date).toLocaleDateString('pt-BR')}</Text>
+            <View style={styles.infoCard}>
+              <MaterialIcons name="cake" size={24} color={Theme.colors.primaryLight} />
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Data de Nascimento</Text>
+                <Text style={styles.infoText}>
+                  {new Date(legend.birth_date).toLocaleDateString('pt-BR')}
+                </Text>
+              </View>
             </View>
           )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Biografia</Text>
-          <Text style={styles.biography}>{legend.biography}</Text>
-        </View>
+        {legend.biography && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Biografia</Text>
+            <Text style={styles.biography}>{legend.biography}</Text>
+          </View>
+        )}
 
         {legend.achievements && (
           <View style={styles.section}>
@@ -210,106 +280,130 @@ export default function LegendDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Theme.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Theme.colors.background,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 400,
+    position: 'relative',
   },
   headerImage: {
     width: '100%',
-    height: 300,
-    backgroundColor: '#ddd',
+    height: '100%',
+    backgroundColor: Theme.colors.backgroundLight,
+  },
+  imageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: Theme.spacing.md,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
-    padding: 20,
+    padding: Theme.spacing.md,
+    marginTop: -Theme.spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    alignItems: 'flex-start',
+    marginBottom: Theme.spacing.lg,
   },
   titleSection: {
     flex: 1,
   },
   name: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 5,
+    ...Theme.typography.h1,
+    fontSize: 32,
+    marginBottom: Theme.spacing.xs,
   },
   fullName: {
-    fontSize: 16,
-    color: '#666',
+    ...Theme.typography.body,
+    color: Theme.colors.textSecondary,
   },
   actionButtons: {
     flexDirection: 'row',
-    gap: 10,
+    gap: Theme.spacing.sm,
   },
   actionButton: {
-    padding: 5,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Theme.colors.backgroundCard,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Theme.shadows.md,
   },
   infoSection: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
+    marginBottom: Theme.spacing.lg,
+    gap: Theme.spacing.md,
   },
-  infoRow: {
+  infoCard: {
     flexDirection: 'row',
+    backgroundColor: Theme.colors.backgroundCard,
+    borderRadius: Theme.borderRadius.md,
+    padding: Theme.spacing.md,
     alignItems: 'center',
-    marginBottom: 10,
+    ...Theme.shadows.sm,
+  },
+  infoContent: {
+    marginLeft: Theme.spacing.md,
+    flex: 1,
+  },
+  infoLabel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.textTertiary,
+    marginBottom: Theme.spacing.xs,
   },
   infoText: {
-    fontSize: 16,
-    color: '#1a1a1a',
-    marginLeft: 10,
+    ...Theme.typography.body,
+    fontWeight: '600',
   },
   section: {
-    marginBottom: 25,
+    marginBottom: Theme.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 12,
+    ...Theme.typography.h3,
+    marginBottom: Theme.spacing.md,
   },
   biography: {
-    fontSize: 16,
+    ...Theme.typography.body,
     lineHeight: 24,
-    color: '#333',
+    color: Theme.colors.textSecondary,
   },
   achievementItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-    paddingLeft: 5,
+    marginBottom: Theme.spacing.sm,
+    backgroundColor: Theme.colors.backgroundCard,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.md,
   },
   achievementText: {
-    fontSize: 16,
-    color: '#333',
-    marginLeft: 10,
+    ...Theme.typography.body,
+    marginLeft: Theme.spacing.sm,
     flex: 1,
   },
-  videoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f0f0f0',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  videoButtonText: {
-    fontSize: 18,
-    color: '#007AFF',
-    marginLeft: 10,
-    fontWeight: 'bold',
-  },
   errorText: {
-    fontSize: 18,
-    color: '#666',
+    ...Theme.typography.h3,
+    color: Theme.colors.error,
+    marginTop: Theme.spacing.md,
   },
 });
-

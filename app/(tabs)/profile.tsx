@@ -6,10 +6,15 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Theme } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AnimatedCard } from '@/components/AnimatedCard';
+import { GradientButton } from '@/components/GradientButton';
 
 export default function ProfileScreen() {
   const { user, profile, signOut } = useAuth();
@@ -34,41 +39,66 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={Theme.colors.gradientDark}
+        style={styles.header}
+      >
         <View style={styles.avatarContainer}>
-          <MaterialIcons name="person" size={60} color="#fff" />
+          <LinearGradient
+            colors={Theme.colors.gradientPrimary}
+            style={styles.avatarGradient}
+          >
+            <MaterialIcons name="person" size={48} color={Theme.colors.text} />
+          </LinearGradient>
         </View>
         <Text style={styles.name}>{profile?.full_name || 'Usuário'}</Text>
         <Text style={styles.email}>{user?.email}</Text>
-      </View>
-
-      <View style={styles.menuSection}>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push('/profile/edit')}
-        >
-          <MaterialIcons name="edit" size={24} color="#007AFF" />
-          <Text style={styles.menuItemText}>Editar Perfil</Text>
-          <MaterialIcons name="chevron-right" size={24} color="#666" />
-        </TouchableOpacity>
-
-        {profile?.email && (
-          <View style={styles.infoItem}>
-            <MaterialIcons name="admin-panel-settings" size={24} color="#666" />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Acesso Admin</Text>
-              <TouchableOpacity onPress={() => router.push('/admin')}>
-                <Text style={styles.infoLink}>Gerenciar</Text>
-              </TouchableOpacity>
-            </View>
+        {profile?.is_admin && (
+          <View style={styles.adminBadge}>
+            <MaterialIcons name="admin-panel-settings" size={16} color="#FFD700" />
+            <Text style={styles.adminText}>Administrador</Text>
           </View>
         )}
+      </LinearGradient>
 
-        <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
-          <MaterialIcons name="logout" size={24} color="#ff3b30" />
-          <Text style={[styles.menuItemText, styles.logoutText]}>Sair</Text>
-          <MaterialIcons name="chevron-right" size={24} color="#666" />
-        </TouchableOpacity>
+      <View style={styles.menuSection}>
+        <AnimatedCard delay={100}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/profile/edit')}
+          >
+            <View style={styles.menuIconContainer}>
+              <MaterialIcons name="edit" size={24} color={Theme.colors.primaryLight} />
+            </View>
+            <Text style={styles.menuItemText}>Editar Perfil</Text>
+            <MaterialIcons name="chevron-right" size={24} color={Theme.colors.textTertiary} />
+          </TouchableOpacity>
+        </AnimatedCard>
+
+        {profile?.is_admin && (
+          <AnimatedCard delay={150}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/admin')}
+            >
+              <View style={[styles.menuIconContainer, { backgroundColor: 'rgba(255, 215, 0, 0.2)' }]}>
+                <MaterialIcons name="admin-panel-settings" size={24} color="#FFD700" />
+              </View>
+              <Text style={[styles.menuItemText, { color: '#FFD700' }]}>Painel Admin</Text>
+              <MaterialIcons name="chevron-right" size={24} color={Theme.colors.textTertiary} />
+            </TouchableOpacity>
+          </AnimatedCard>
+        )}
+
+        <AnimatedCard delay={200}>
+          <GradientButton
+            title="Sair"
+            onPress={handleSignOut}
+            variant="primary"
+            style={styles.logoutButton}
+          />
+        </AnimatedCard>
       </View>
     </ScrollView>
   );
@@ -77,74 +107,73 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Theme.colors.background,
   },
   header: {
-    backgroundColor: '#fff',
+    paddingTop: 60,
+    paddingBottom: Theme.spacing.xl,
     alignItems: 'center',
-    padding: 30,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
   },
   avatarContainer: {
+    marginBottom: Theme.spacing.md,
+  },
+  avatarGradient: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    ...Theme.shadows.lg,
   },
   name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 5,
+    ...Theme.typography.h1,
+    fontSize: 28,
+    marginBottom: Theme.spacing.xs,
   },
   email: {
-    fontSize: 16,
-    color: '#666',
+    ...Theme.typography.body,
+    color: Theme.colors.textSecondary,
+    marginBottom: Theme.spacing.sm,
+  },
+  adminBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    paddingHorizontal: Theme.spacing.md,
+    paddingVertical: Theme.spacing.xs,
+    borderRadius: Theme.borderRadius.full,
+    gap: Theme.spacing.xs,
+    marginTop: Theme.spacing.sm,
+  },
+  adminText: {
+    ...Theme.typography.caption,
+    color: '#FFD700',
+    fontWeight: '600',
   },
   menuSection: {
-    backgroundColor: '#fff',
-    marginTop: 20,
-    paddingVertical: 10,
+    padding: Theme.spacing.md,
+    paddingTop: Theme.spacing.lg,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingVertical: Theme.spacing.md,
+  },
+  menuIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(90, 200, 250, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Theme.spacing.md,
   },
   menuItemText: {
     flex: 1,
-    fontSize: 16,
-    color: '#1a1a1a',
-    marginLeft: 15,
+    ...Theme.typography.body,
+    fontWeight: '500',
   },
-  logoutText: {
-    color: '#ff3b30',
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  infoContent: {
-    flex: 1,
-    marginLeft: 15,
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  infoLink: {
-    fontSize: 14,
-    color: '#007AFF',
+  logoutButton: {
+    marginTop: Theme.spacing.md,
   },
 });
-

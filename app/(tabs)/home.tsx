@@ -3,15 +3,18 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
-  Image,
   ActivityIndicator,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Legend } from '@/types';
+import { LegendCard } from '@/components/LegendCard';
+import { Theme } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const [legends, setLegends] = useState<Legend[]>([]);
@@ -46,46 +49,62 @@ export default function HomeScreen() {
     fetchLegends();
   };
 
-  const renderLegendItem = ({ item }: { item: Legend }) => (
-    <TouchableOpacity
-      style={styles.legendCard}
+  const renderLegendItem = ({ item, index }: { item: Legend; index: number }) => (
+    <LegendCard
+      legend={item}
       onPress={() => router.push(`/legend/${item.id}`)}
-    >
-      {item.image_url && (
-        <Image source={{ uri: item.image_url }} style={styles.legendImage} />
-      )}
-      <View style={styles.legendInfo}>
-        <Text style={styles.legendName}>{item.name}</Text>
-        {item.nationality && <Text style={styles.legendNationality}>{item.nationality}</Text>}
-        {item.position && <Text style={styles.legendPosition}>{item.position}</Text>}
-        {item.current_club && <Text style={styles.legendClub}>{item.current_club}</Text>}
-      </View>
-    </TouchableOpacity>
+      delay={index * 100}
+    />
   );
 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={Theme.colors.primary} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={Theme.colors.gradientDark}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.headerTitle}>Futebol Legends</Text>
+            <Text style={styles.headerSubtitle}>As maiores lendas do futebol</Text>
+          </View>
+          <View style={styles.iconContainer}>
+            <MaterialIcons name="sports-soccer" size={32} color={Theme.colors.footballLight} />
+          </View>
+        </View>
+      </LinearGradient>
+
       <FlatList
         data={legends}
         renderItem={renderLegendItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Theme.colors.primary}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <MaterialIcons name="sports-soccer" size={64} color={Theme.colors.textTertiary} />
             <Text style={styles.emptyText}>Nenhuma lenda encontrada</Text>
+            <Text style={styles.emptySubtext}>
+              As lendas aparecerão aqui quando forem adicionadas
+            </Text>
           </View>
         }
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -94,64 +113,60 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Theme.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Theme.colors.background,
+  },
+  header: {
+    paddingTop: 60,
+    paddingBottom: Theme.spacing.lg,
+    paddingHorizontal: Theme.spacing.md,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    ...Theme.typography.h1,
+    fontSize: 28,
+    marginBottom: Theme.spacing.xs,
+  },
+  headerSubtitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.textSecondary,
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContent: {
-    padding: 10,
-  },
-  legendCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 15,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  legendImage: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#ddd',
-  },
-  legendInfo: {
-    padding: 15,
-  },
-  legendName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 5,
-  },
-  legendNationality: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 3,
-  },
-  legendPosition: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginBottom: 3,
-  },
-  legendClub: {
-    fontSize: 14,
-    color: '#666',
+    padding: Theme.spacing.md,
+    paddingTop: Theme.spacing.md,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: Theme.spacing.xxl,
+    minHeight: 400,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    ...Theme.typography.h3,
+    marginTop: Theme.spacing.md,
+    marginBottom: Theme.spacing.sm,
+  },
+  emptySubtext: {
+    ...Theme.typography.body,
+    color: Theme.colors.textTertiary,
+    textAlign: 'center',
   },
 });
-
