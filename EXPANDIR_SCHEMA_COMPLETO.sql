@@ -73,9 +73,20 @@ CREATE INDEX IF NOT EXISTS idx_career_milestones_date ON career_milestones(date 
 CREATE INDEX IF NOT EXISTS idx_career_milestones_type ON career_milestones(milestone_type);
 
 -- ============================================
--- 4. EXPANDIR TABELA DE QUIZ QUESTIONS
+-- 4. CRIAR/EXPANDIR TABELA DE QUIZ QUESTIONS
 -- ============================================
--- Adicionar colunas para expandir o quiz
+-- Criar tabela se não existir
+CREATE TABLE IF NOT EXISTS quiz_questions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  question TEXT NOT NULL,
+  options JSONB NOT NULL,
+  correct_answer INTEGER NOT NULL,
+  explanation TEXT,
+  difficulty TEXT DEFAULT 'medium',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Adicionar colunas para expandir o quiz (se não existirem)
 ALTER TABLE quiz_questions 
   ADD COLUMN IF NOT EXISTS legend_id UUID REFERENCES legends(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS question_type TEXT DEFAULT 'general', -- 'general', 'biography', 'statistics', 'trophies', 'career', 'trivia'
@@ -83,11 +94,13 @@ ALTER TABLE quiz_questions
   ADD COLUMN IF NOT EXISTS time_limit INTEGER DEFAULT 30, -- Segundos
   ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS image_url TEXT,
-  ADD COLUMN IF NOT EXISTS video_url TEXT;
+  ADD COLUMN IF NOT EXISTS video_url TEXT,
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 
 CREATE INDEX IF NOT EXISTS idx_quiz_questions_legend_id ON quiz_questions(legend_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_questions_type ON quiz_questions(question_type);
 CREATE INDEX IF NOT EXISTS idx_quiz_questions_difficulty ON quiz_questions(difficulty);
+CREATE INDEX IF NOT EXISTS idx_quiz_questions_active ON quiz_questions(is_active) WHERE is_active = true;
 
 -- ============================================
 -- 5. TABELA DE RESULTADOS DO QUIZ
