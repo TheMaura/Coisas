@@ -310,7 +310,7 @@ export default function LegendDetailScreen() {
               colors={['#FFD700', '#FFA500']}
               style={styles.actionCardGradient}
             >
-              <MaterialIcons name="trophy" size={32} color="#fff" />
+              <MaterialIcons name="emoji-events" size={32} color="#fff" />
               <Text style={styles.actionCardTitle}>Troféus</Text>
               <Text style={styles.actionCardSubtitle}>Conquistas e prêmios</Text>
             </LinearGradient>

@@ -202,7 +202,7 @@ export default function AdminScreen() {
               style={styles.menuButton}
               onPress={() => router.push('/admin/trophies')}
             >
-              <MaterialIcons name="trophy" size={24} color={Theme.colors.text} />
+              <MaterialIcons name="emoji-events" size={24} color={Theme.colors.text} />
               <Text style={styles.menuButtonText}>Troféus</Text>
             </TouchableOpacity>
             <TouchableOpacity

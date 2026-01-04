@@ -266,7 +266,7 @@ export default function AdminTrophiesScreen() {
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <MaterialIcons name="trophy" size={64} color={Theme.colors.textTertiary} />
+                <MaterialIcons name="emoji-events" size={64} color={Theme.colors.textTertiary} />
                 <Text style={styles.emptyText}>Nenhum troféu cadastrado</Text>
               </View>
             }

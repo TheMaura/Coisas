@@ -204,7 +204,7 @@ export default function TrophiesScreen() {
 
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <MaterialIcons name="trophy" size={24} color="#FFD700" />
+            <MaterialIcons name="emoji-events" size={24} color="#FFD700" />
             <Text style={styles.statValue}>{totalTrophies}</Text>
             <Text style={styles.statLabel}>Total</Text>
           </View>
@@ -262,7 +262,7 @@ export default function TrophiesScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="trophy" size={64} color={Theme.colors.textTertiary} />
+            <MaterialIcons name="emoji-events" size={64} color={Theme.colors.textTertiary} />
             <Text style={styles.emptyText}>Nenhum troféu encontrado</Text>
             <Text style={styles.emptySubtext}>
               Os troféus desta lenda aparecerão aqui quando forem adicionados
