@@ -60,16 +60,29 @@ export const uploadImage = async (
     const response = await fetch(uri);
     const blob = await response.blob();
 
+    // Verificar se o usuário está autenticado
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Você precisa estar logado para fazer upload de imagens');
+    }
+
     // Upload para Supabase Storage
     const { data, error: uploadError } = await supabase.storage
       .from('media')
       .upload(filePath, blob, {
         contentType: `image/${fileExt}`,
         upsert: true,
+        cacheControl: '3600',
       });
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
+      
+      // Mensagem de erro mais amigável
+      if (uploadError.message.includes('row-level security')) {
+        throw new Error('Erro de permissão. Verifique se as políticas de Storage foram configuradas. Veja CORRIGIR_ERRO_STORAGE.md');
+      }
+      
       throw uploadError;
     }
 
