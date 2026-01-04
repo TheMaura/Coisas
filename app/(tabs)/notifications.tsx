@@ -36,6 +36,7 @@ export default function NotificationsScreen() {
     if (!user) return;
 
     try {
+      // Buscar notificações do usuário OU notificações gerais (sem user_id)
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
@@ -43,10 +44,30 @@ export default function NotificationsScreen() {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        throw error;
+      }
+      
+      console.log('Notifications fetched:', data?.length || 0);
       setNotifications(data || []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      // Tentar buscar apenas notificações gerais se houver erro
+      try {
+        const { data: generalData, error: generalError } = await supabase
+          .from('notifications')
+          .select('*')
+          .is('user_id', null)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        if (!generalError && generalData) {
+          setNotifications(generalData);
+        }
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

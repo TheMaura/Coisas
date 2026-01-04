@@ -57,11 +57,24 @@ export default function AdminNotificationsScreen() {
         notificationData.legend_id = formData.legend_id;
       }
 
-      // Se houver tokens, criar notificação para cada usuário
-      if (tokens && tokens.length > 0) {
-        const notifications = tokens.map((token) => ({
+      // Buscar todos os usuários para criar notificações
+      const { data: allUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('id');
+
+      if (usersError) {
+        console.warn('Error fetching users, creating notification without user_id:', usersError);
+        // Criar notificação geral sem user_id específico (visível para todos)
+        const { error: notifError } = await supabase
+          .from('notifications')
+          .insert([notificationData]);
+
+        if (notifError) throw notifError;
+      } else if (allUsers && allUsers.length > 0) {
+        // Criar notificação para cada usuário
+        const notifications = allUsers.map((user) => ({
           ...notificationData,
-          user_id: token.user_id,
+          user_id: user.id,
         }));
 
         const { error: notifError } = await supabase
@@ -70,7 +83,7 @@ export default function AdminNotificationsScreen() {
 
         if (notifError) throw notifError;
       } else {
-        // Criar notificação geral sem user_id específico
+        // Criar notificação geral sem user_id específico (visível para todos)
         const { error: notifError } = await supabase
           .from('notifications')
           .insert([notificationData]);
