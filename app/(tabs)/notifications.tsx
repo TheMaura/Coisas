@@ -36,38 +36,55 @@ export default function NotificationsScreen() {
     if (!user) return;
 
     try {
-      // Buscar notificações do usuário OU notificações gerais (sem user_id)
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .or(`user_id.eq.${user.id},user_id.is.null`)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error('Error fetching notifications:', error);
-        throw error;
-      }
+      console.log('Fetching notifications for user:', user.id);
       
-      console.log('Notifications fetched:', data?.length || 0);
-      setNotifications(data || []);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      // Tentar buscar apenas notificações gerais se houver erro
-      try {
-        const { data: generalData, error: generalError } = await supabase
+      // Buscar notificações do usuário OU notificações gerais (sem user_id)
+      // Usar duas queries separadas para garantir que ambas funcionem
+      const [userNotifications, generalNotifications] = await Promise.all([
+        supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
           .from('notifications')
           .select('*')
           .is('user_id', null)
           .order('created_at', { ascending: false })
-          .limit(50);
-        
-        if (!generalError && generalData) {
-          setNotifications(generalData);
-        }
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
+          .limit(50),
+      ]);
+
+      if (userNotifications.error) {
+        console.error('Error fetching user notifications:', userNotifications.error);
       }
+      if (generalNotifications.error) {
+        console.error('Error fetching general notifications:', generalNotifications.error);
+      }
+
+      // Combinar e remover duplicatas
+      const allNotifications = [
+        ...(userNotifications.data || []),
+        ...(generalNotifications.data || []),
+      ];
+
+      // Remover duplicatas baseado no ID
+      const uniqueNotifications = allNotifications.filter(
+        (notification, index, self) =>
+          index === self.findIndex((n) => n.id === notification.id)
+      );
+
+      // Ordenar por data mais recente
+      uniqueNotifications.sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+
+      console.log(`Fetched ${uniqueNotifications.length} notifications (${userNotifications.data?.length || 0} user-specific, ${generalNotifications.data?.length || 0} general)`);
+      setNotifications(uniqueNotifications.slice(0, 50));
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

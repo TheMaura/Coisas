@@ -65,13 +65,17 @@ export default function AdminNotificationsScreen() {
         .select('id');
 
       if (usersError) {
-        console.warn('Error fetching users, creating notification without user_id:', usersError);
+        console.error('Error fetching users:', usersError);
         // Criar notificação geral sem user_id específico (visível para todos)
         const { error: notifError } = await supabase
           .from('notifications')
           .insert([notificationData]);
 
-        if (notifError) throw notifError;
+        if (notifError) {
+          console.error('Error inserting general notification:', notifError);
+          throw notifError;
+        }
+        console.log('General notification created (no user_id)');
       } else if (allUsers && allUsers.length > 0) {
         // Criar notificação para cada usuário
         const notifications = allUsers.map((user) => ({
@@ -79,18 +83,28 @@ export default function AdminNotificationsScreen() {
           user_id: user.id,
         }));
 
+        console.log(`Creating ${notifications.length} notifications for users`);
         const { error: notifError } = await supabase
           .from('notifications')
           .insert(notifications);
 
-        if (notifError) throw notifError;
+        if (notifError) {
+          console.error('Error inserting user notifications:', notifError);
+          throw notifError;
+        }
+        console.log(`Successfully created ${notifications.length} notifications`);
       } else {
         // Criar notificação geral sem user_id específico (visível para todos)
+        console.log('No users found, creating general notification');
         const { error: notifError } = await supabase
           .from('notifications')
           .insert([notificationData]);
 
-        if (notifError) throw notifError;
+        if (notifError) {
+          console.error('Error inserting general notification:', notifError);
+          throw notifError;
+        }
+        console.log('General notification created');
       }
 
       // Enviar notificação local para teste
