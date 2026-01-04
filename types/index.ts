@@ -86,11 +86,13 @@ export interface Favorite {
 
 export interface Notification {
   id: string;
-  user_id: string;
+  user_id?: string; // Pode ser null para notificações gerais
   title: string;
   message: string;
-  type: 'new_legend' | 'update' | 'general' | 'story' | 'media';
-  read: boolean;
+  type: 'new_legend' | 'update' | 'general' | 'story' | 'media' | 'legend';
+  read?: boolean; // Compatibilidade com schema antigo
+  is_read?: boolean; // Novo nome preferido
+  legend_id?: string;
   created_at?: string;
 }
 

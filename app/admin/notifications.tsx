@@ -46,11 +46,13 @@ export default function AdminNotificationsScreen() {
       if (tokensError) throw tokensError;
 
       // Criar registro de notificação no banco
+      // Usar 'read' para compatibilidade com o schema atual
       const notificationData: any = {
         title: formData.title,
         message: formData.message,
         type: formData.type,
-        is_read: false,
+        read: false, // Schema usa 'read', não 'is_read'
+        is_read: false, // Fallback caso tenha sido alterado
       };
 
       if (formData.legend_id) {

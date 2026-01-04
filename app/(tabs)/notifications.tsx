@@ -81,9 +81,11 @@ export default function NotificationsScreen() {
 
   const markAsRead = async (notificationId: string) => {
     try {
+      // Tentar atualizar com ambos os nomes de coluna para compatibilidade
+      const updateData: any = { is_read: true, read: true };
       await supabase
         .from('notifications')
-        .update({ is_read: true })
+        .update(updateData)
         .eq('id', notificationId);
       
       fetchNotifications();
@@ -93,7 +95,8 @@ export default function NotificationsScreen() {
   };
 
   const handleNotificationPress = async (notification: Notification) => {
-    if (!notification.is_read) {
+    const isRead = notification.is_read ?? notification.read ?? false;
+    if (!isRead) {
       await markAsRead(notification.id);
     }
 
@@ -107,13 +110,15 @@ export default function NotificationsScreen() {
       item.type === 'legend' ? 'sports-soccer' :
       item.type === 'update' ? 'update' :
       'notifications';
+    
+    const isRead = item.is_read ?? item.read ?? false;
 
     return (
       <AnimatedCard delay={index * 30} style={styles.notificationCard}>
         <TouchableOpacity
           style={[
             styles.cardContent,
-            !item.is_read && styles.unreadCard,
+            !isRead && styles.unreadCard,
           ]}
           onPress={() => handleNotificationPress(item)}
         >
@@ -121,13 +126,13 @@ export default function NotificationsScreen() {
             <MaterialIcons
               name={iconName as any}
               size={24}
-              color={item.is_read ? Theme.colors.textSecondary : Theme.colors.primary}
+              color={isRead ? Theme.colors.textSecondary : Theme.colors.primary}
             />
           </View>
           <View style={styles.notificationInfo}>
             <Text style={[
               styles.notificationTitle,
-              !item.is_read && styles.unreadTitle,
+              !isRead && styles.unreadTitle,
             ]}>
               {item.title}
             </Text>
@@ -135,7 +140,7 @@ export default function NotificationsScreen() {
               {item.message}
             </Text>
             <Text style={styles.notificationDate}>
-              {new Date(item.created_at).toLocaleDateString('pt-BR', {
+              {new Date(item.created_at || new Date()).toLocaleDateString('pt-BR', {
                 day: '2-digit',
                 month: 'short',
                 hour: '2-digit',
@@ -143,7 +148,7 @@ export default function NotificationsScreen() {
               })}
             </Text>
           </View>
-          {!item.is_read && (
+          {!isRead && (
             <View style={styles.unreadDot} />
           )}
         </TouchableOpacity>
@@ -172,7 +177,7 @@ export default function NotificationsScreen() {
     );
   }
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadCount = notifications.filter(n => !(n.is_read ?? n.read ?? false)).length;
 
   return (
     <View style={styles.container}>
