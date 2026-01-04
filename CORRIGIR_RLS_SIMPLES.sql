@@ -8,13 +8,25 @@
 -- 1. CORRIGIR POLÍTICAS DE profiles
 -- ============================================
 
--- Remover políticas antigas de profiles
+-- Remover TODAS as políticas antigas de profiles
 DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
 DROP POLICY IF EXISTS "Admins can update all profiles" ON profiles;
 DROP POLICY IF EXISTS "Admins can delete profiles" ON profiles;
 DROP POLICY IF EXISTS "Authenticated users can view all profiles" ON profiles;
+DROP POLICY IF EXISTS "Authenticated users can update profiles" ON profiles;
+DROP POLICY IF EXISTS "Authenticated users can delete profiles" ON profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
+-- Remover qualquer outra política que possa existir
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'profiles') LOOP
+        EXECUTE 'DROP POLICY IF EXISTS "' || r.policyname || '" ON profiles';
+    END LOOP;
+END $$;
 
 -- Usuários autenticados podem ver todos os perfis
 CREATE POLICY "Authenticated users can view all profiles" ON profiles
@@ -42,12 +54,21 @@ CREATE POLICY "Users can insert own profile" ON profiles
 -- 2. CORRIGIR POLÍTICAS DE notifications
 -- ============================================
 
--- Remover políticas antigas de notifications
+-- Remover TODAS as políticas antigas de notifications
 DROP POLICY IF EXISTS "Users can view own notifications" ON notifications;
 DROP POLICY IF EXISTS "Users can view general notifications" ON notifications;
 DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
 DROP POLICY IF EXISTS "Authenticated users can insert notifications" ON notifications;
 DROP POLICY IF EXISTS "Admins can insert notifications" ON notifications;
+-- Remover qualquer outra política que possa existir
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'notifications') LOOP
+        EXECUTE 'DROP POLICY IF EXISTS "' || r.policyname || '" ON notifications';
+    END LOOP;
+END $$;
 
 -- Usuários podem ver suas próprias notificações
 CREATE POLICY "Users can view own notifications" ON notifications
