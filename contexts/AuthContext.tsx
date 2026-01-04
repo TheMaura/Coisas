@@ -59,14 +59,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Usar maybeSingle() ao invés de single() para não dar erro se não existir
 
-      if (error) throw error;
-      setProfile(data as User);
-    } catch (error) {
+      if (error) {
+        // Se for erro de perfil não encontrado, criar um perfil básico
+        if (error.code === 'PGRST116' || error.message.includes('0 rows')) {
+          console.log('Profile not found, creating new profile for user:', userId);
+          await createProfile(userId);
+          // Tentar buscar novamente após criar
+          const { data: newData, error: newError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
+          
+          if (newError) {
+            console.error('Error fetching newly created profile:', newError);
+            setProfile(null);
+          } else {
+            setProfile(newData as User | null);
+          }
+        } else {
+          throw error;
+        }
+      } else {
+        // Se não encontrou perfil, criar um
+        if (!data) {
+          console.log('Profile not found, creating new profile for user:', userId);
+          await createProfile(userId);
+          // Tentar buscar novamente após criar
+          const { data: newData, error: newError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
+          
+          if (newError) {
+            console.error('Error fetching newly created profile:', newError);
+            setProfile(null);
+          } else {
+            setProfile(newData as User | null);
+          }
+        } else {
+          setProfile(data as User);
+        }
+      }
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
+      // Se não conseguir criar o perfil, definir como null mas não bloquear o app
+      setProfile(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createProfile = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        // Se já existe, não é um erro crítico
+        if (error.code !== '23505') { // 23505 = unique_violation
+          throw error;
+        }
+      }
+    } catch (error: any) {
+      console.error('Error creating profile:', error);
+      throw error;
     }
   };
 
