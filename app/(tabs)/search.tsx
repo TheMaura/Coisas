@@ -94,7 +94,7 @@ export default function SearchScreen() {
     <LegendCard
       legend={item}
       onPress={() => router.push(`/legend/${item.id}`)}
-      delay={index * 50}
+      delay={Math.min(index * 30, 300)} // Limitar delay máximo
     />
   );
 
@@ -275,6 +275,11 @@ export default function SearchScreen() {
           renderItem={renderLegendItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          removeClippedSubviews={false}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          windowSize={10}
+          initialNumToRender={10}
           ListEmptyComponent={
             searchQuery.length > 2 || hasActiveFilters() ? (
               <View style={styles.emptyContainer}>

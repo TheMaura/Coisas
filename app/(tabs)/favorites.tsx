@@ -61,7 +61,7 @@ export default function FavoritesScreen() {
       <LegendCard
         legend={item.legends as any}
         onPress={() => router.push(`/legend/${item.legends.id}`)}
-        delay={index * 50}
+        delay={Math.min(index * 30, 300)} // Limitar delay máximo
       />
     );
   };
@@ -112,6 +112,11 @@ export default function FavoritesScreen() {
         renderItem={renderFavoriteItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
+        removeClippedSubviews={false}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
+        initialNumToRender={10}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

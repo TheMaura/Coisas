@@ -53,7 +53,7 @@ export default function HomeScreen() {
     <LegendCard
       legend={item}
       onPress={() => router.push(`/legend/${item.id}`)}
-      delay={index * 100}
+      delay={Math.min(index * 30, 300)} // Limitar delay máximo
     />
   );
 
@@ -88,6 +88,11 @@ export default function HomeScreen() {
         renderItem={renderLegendItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
+        removeClippedSubviews={false}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
+        windowSize={10}
+        initialNumToRender={10}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

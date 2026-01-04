@@ -21,13 +21,17 @@ interface LegendCardProps {
 
 export function LegendCard({ legend, onPress, delay = 0 }: LegendCardProps) {
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(0);
+  const opacity = useSharedValue(1); // Começar visível para evitar desaparecimento
 
   React.useEffect(() => {
-    setTimeout(() => {
-      opacity.value = withSpring(1, { damping: 15 });
-    }, delay);
-  }, []);
+    // Animar apenas se houver delay, caso contrário já está visível
+    if (delay > 0) {
+      opacity.value = 0;
+      setTimeout(() => {
+        opacity.value = withSpring(1, { damping: 15 });
+      }, delay);
+    }
+  }, [delay]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
