@@ -1,7 +1,7 @@
 -- ============================================
--- CRIAR TABELA notification_tokens (VERSÃO SIMPLES)
+-- CRIAR TABELA notification_tokens (VERSÃO FINAL)
 -- Execute este SQL no Supabase SQL Editor
--- Esta versão não depende da coluna is_admin
+-- Esta versão NÃO depende de colunas de admin
 -- ============================================
 
 -- Tabela para armazenar tokens de notificação push
@@ -54,6 +54,15 @@ SELECT
 FROM information_schema.columns
 WHERE table_name = 'notification_tokens'
 ORDER BY ordinal_position;
+
+-- Verificar se as políticas foram criadas
+SELECT
+  policyname,
+  cmd,
+  roles
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename = 'notification_tokens';
 
 -- ============================================
 -- FIM

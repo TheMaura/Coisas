@@ -41,24 +41,9 @@ CREATE POLICY "Users can update own tokens" ON notification_tokens
 CREATE POLICY "Users can delete own tokens" ON notification_tokens
   FOR DELETE USING (auth.uid() = user_id);
 
--- Admins podem ver todos os tokens
--- IMPORTANTE: Se a coluna is_admin não existir na tabela profiles,
--- remova ou comente as linhas abaixo
-CREATE POLICY "Admins can view all tokens" ON notification_tokens
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid() 
-      AND (
-        -- Verificar se a coluna is_admin existe e é TRUE
-        (SELECT COUNT(*) FROM information_schema.columns 
-         WHERE table_schema = 'public' 
-         AND table_name = 'profiles' 
-         AND column_name = 'is_admin') > 0
-        AND (SELECT is_admin FROM profiles WHERE id = auth.uid()) = TRUE
-      )
-    )
-  );
+-- NOTA: Política para admins removida porque a coluna is_admin/admin não existe
+-- Se você precisar de acesso admin, adicione a coluna is_admin na tabela profiles primeiro
+-- ou ajuste esta política conforme sua estrutura de dados
 
 -- ============================================
 -- VERIFICAÇÃO
