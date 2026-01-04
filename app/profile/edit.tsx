@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '@/lib/supabase';
 import { Theme } from '@/constants/Theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,7 +21,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { GradientButton } from '@/components/GradientButton';
 import { AnimatedCard } from '@/components/AnimatedCard';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system/legacy';
 
 export default function EditProfileScreen() {
   const { profile, updateProfile, refreshProfile } = useAuth();
