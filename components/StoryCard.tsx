@@ -29,8 +29,9 @@ const categoryColors: { [key: string]: string[] } = {
 };
 
 export function StoryCard({ story, onPress, index = 0 }: StoryCardProps) {
-  const icon = categoryIcons[story.category] || 'article';
-  const gradientColors = categoryColors[story.category] || Theme.colors.gradientPrimary;
+  const category = story.category || 'inspiration';
+  const icon = categoryIcons[category] || 'article';
+  const gradientColors = categoryColors[category] || Theme.colors.gradientPrimary;
 
   return (
     <Animated.View
@@ -61,17 +62,19 @@ export function StoryCard({ story, onPress, index = 0 }: StoryCardProps) {
           style={styles.overlay}
         >
           <View style={styles.content}>
-            <View style={styles.categoryBadge}>
-              <MaterialIcons name={icon} size={16} color="#fff" />
-              <Text style={styles.categoryText}>
-                {story.category.charAt(0).toUpperCase() + story.category.slice(1)}
-              </Text>
-            </View>
+            {category && (
+              <View style={styles.categoryBadge}>
+                <MaterialIcons name={icon} size={16} color="#fff" />
+                <Text style={styles.categoryText}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </Text>
+              </View>
+            )}
             <Text style={styles.title} numberOfLines={2}>
               {story.title}
             </Text>
             <Text style={styles.preview} numberOfLines={2}>
-              {story.content.substring(0, 100)}...
+              {story.content ? story.content.substring(0, 100) + '...' : 'Sem descrição disponível'}
             </Text>
             {story.is_featured && (
               <View style={styles.featuredBadge}>

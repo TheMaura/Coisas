@@ -51,7 +51,7 @@ export interface Story {
   legend_id: string;
   title: string;
   content: string;
-  category: 'career' | 'achievement' | 'inspiration' | 'challenge' | 'legacy';
+  category?: 'career' | 'achievement' | 'inspiration' | 'challenge' | 'legacy';
   image_url?: string;
   video_url?: string;
   is_featured: boolean;
@@ -59,6 +59,13 @@ export interface Story {
   created_at?: string;
   updated_at?: string;
   legend?: Legend;
+  reading_time?: number;
+  view_count?: number;
+  like_count?: number;
+  tags?: string[];
+  author_name?: string;
+  image_gallery?: string[];
+  related_stories?: string[];
 }
 
 export interface Media {
