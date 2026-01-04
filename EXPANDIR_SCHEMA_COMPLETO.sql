@@ -275,16 +275,49 @@ CREATE POLICY "Users can manage own media likes" ON media_likes
   FOR ALL USING (auth.uid() = user_id);
 
 -- ============================================
--- 10. FUNÇÕES PARA ATUALIZAR CONTADORES
+-- 10. CRIAR TABELA VIEW_STATS (se não existir)
+-- ============================================
+CREATE TABLE IF NOT EXISTS view_stats (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  legend_id UUID REFERENCES legends(id) ON DELETE CASCADE,
+  story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
+  media_id UUID REFERENCES media(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  view_type TEXT NOT NULL CHECK (view_type IN ('legend', 'story', 'media')),
+  viewed_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_view_stats_legend_id ON view_stats(legend_id);
+CREATE INDEX IF NOT EXISTS idx_view_stats_story_id ON view_stats(story_id);
+CREATE INDEX IF NOT EXISTS idx_view_stats_media_id ON view_stats(media_id);
+CREATE INDEX IF NOT EXISTS idx_view_stats_user_id ON view_stats(user_id);
+CREATE INDEX IF NOT EXISTS idx_view_stats_type ON view_stats(view_type);
+
+-- Habilitar RLS para view_stats
+ALTER TABLE view_stats ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can insert view stats" ON view_stats;
+CREATE POLICY "Anyone can insert view stats" ON view_stats
+  FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Users can view own view stats" ON view_stats;
+CREATE POLICY "Users can view own view stats" ON view_stats
+  FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL);
+
+-- ============================================
+-- 11. FUNÇÕES PARA ATUALIZAR CONTADORES
 -- ============================================
 
 -- Função para atualizar contador de views em stories
 CREATE OR REPLACE FUNCTION update_story_view_count()
 RETURNS TRIGGER AS $$
 BEGIN
-  UPDATE stories
-  SET view_count = view_count + 1
-  WHERE id = NEW.story_id;
+  IF NEW.view_type = 'story' AND NEW.story_id IS NOT NULL THEN
+    UPDATE stories
+    SET view_count = view_count + 1
+    WHERE id = NEW.story_id;
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -296,6 +329,27 @@ CREATE TRIGGER trigger_update_story_view_count
   FOR EACH ROW
   WHEN (NEW.view_type = 'story' AND NEW.story_id IS NOT NULL)
   EXECUTE FUNCTION update_story_view_count();
+
+-- Função para atualizar contador de views em media
+CREATE OR REPLACE FUNCTION update_media_view_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.view_type = 'media' AND NEW.media_id IS NOT NULL THEN
+    UPDATE media
+    SET view_count = view_count + 1
+    WHERE id = NEW.media_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para atualizar view_count em media
+DROP TRIGGER IF EXISTS trigger_update_media_view_count ON view_stats;
+CREATE TRIGGER trigger_update_media_view_count
+  AFTER INSERT ON view_stats
+  FOR EACH ROW
+  WHEN (NEW.view_type = 'media' AND NEW.media_id IS NOT NULL)
+  EXECUTE FUNCTION update_media_view_count();
 
 -- Função para atualizar contador de likes em stories
 CREATE OR REPLACE FUNCTION update_story_like_count()
