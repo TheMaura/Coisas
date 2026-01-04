@@ -91,8 +91,9 @@ export const uploadImage = async (
     }
 
     // Ler arquivo usando FileSystem (funciona corretamente no React Native)
+    // Usar 'base64' diretamente (API do expo-file-system)
     const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: 'base64' as any,
+      encoding: 'base64',
     });
 
     // Converter base64 para ArrayBuffer
