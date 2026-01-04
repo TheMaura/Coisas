@@ -18,6 +18,9 @@ export default function AdminLayout() {
       <Stack.Screen name="media" options={{ title: 'Gestão de Mídias' }} />
       <Stack.Screen name="users" options={{ title: 'Gestão de Usuários' }} />
       <Stack.Screen name="notifications" options={{ title: 'Enviar Notificação' }} />
+      <Stack.Screen name="trophies" options={{ title: 'Gestão de Troféus' }} />
+      <Stack.Screen name="youtube-videos" options={{ title: 'Gestão de Vídeos YouTube' }} />
+      <Stack.Screen name="career-milestones" options={{ title: 'Gestão de Marcos da Carreira' }} />
     </Stack>
   );
 }

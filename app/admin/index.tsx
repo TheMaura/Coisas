@@ -185,6 +185,27 @@ export default function AdminScreen() {
           <MaterialIcons name="notifications" size={24} color={Theme.colors.text} />
           <Text style={styles.menuButtonText}>Enviar Notificação</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push('/admin/trophies')}
+        >
+          <MaterialIcons name="trophy" size={24} color={Theme.colors.text} />
+          <Text style={styles.menuButtonText}>Troféus</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push('/admin/youtube-videos')}
+        >
+          <MaterialIcons name="video-library" size={24} color={Theme.colors.text} />
+          <Text style={styles.menuButtonText}>Vídeos YouTube</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push('/admin/career-milestones')}
+        >
+          <MaterialIcons name="timeline" size={24} color={Theme.colors.text} />
+          <Text style={styles.menuButtonText}>Marcos da Carreira</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
