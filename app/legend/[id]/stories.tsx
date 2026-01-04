@@ -138,36 +138,7 @@ export default function StoriesScreen() {
           </View>
         </View>
 
-        <FlatList
-          horizontal
-          data={categories}
-          keyExtractor={(item) => item.id || 'all'}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.categoryChip,
-                selectedCategory === item.id && styles.categoryChipActive,
-              ]}
-              onPress={() => setSelectedCategory(item.id)}
-            >
-              <MaterialIcons
-                name={item.icon as any}
-                size={18}
-                color={selectedCategory === item.id ? Theme.colors.text : Theme.colors.textSecondary}
-              />
-              <Text
-                style={[
-                  styles.categoryChipText,
-                  selectedCategory === item.id && styles.categoryChipTextActive,
-                ]}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.categoriesList}
-          showsHorizontalScrollIndicator={false}
-        />
+        {/* Filtros de categoria removidos - coluna 'category' não existe no banco de dados */}
       </LinearGradient>
 
       <FlatList
