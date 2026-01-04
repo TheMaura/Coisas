@@ -21,6 +21,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { GradientButton } from '@/components/GradientButton';
 import { AnimatedCard } from '@/components/AnimatedCard';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export default function EditProfileScreen() {
   const { profile, updateProfile, refreshProfile } = useAuth();
@@ -45,7 +46,7 @@ export default function EditProfileScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: [ImagePicker.MediaType.Images],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
