@@ -178,6 +178,13 @@ export default function AdminScreen() {
           <MaterialIcons name="people" size={24} color={Theme.colors.text} />
           <Text style={styles.menuButtonText}>Usuários</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push('/admin/notifications')}
+        >
+          <MaterialIcons name="notifications" size={24} color={Theme.colors.text} />
+          <Text style={styles.menuButtonText}>Enviar Notificação</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
