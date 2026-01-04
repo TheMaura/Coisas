@@ -170,7 +170,7 @@ export default function AdminMediaScreen() {
 
       <GradientButton
         title="Nova Mídia"
-        onPress={() => router.push('/admin/media-create')}
+        onPress={() => router.push('/admin/new-media')}
         variant="football"
         style={styles.addButton}
       />
