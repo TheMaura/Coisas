@@ -60,7 +60,7 @@ export default function StoriesScreen() {
         .from('stories')
         .select('*')
         .eq('legend_id', id)
-        .order('order_index', { ascending: true })
+        .order('created_at', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (selectedCategory) {

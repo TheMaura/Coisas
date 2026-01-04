@@ -49,7 +49,7 @@ export default function MediaScreen() {
         .from('media')
         .select('*')
         .eq('legend_id', id)
-        .order('order_index', { ascending: true })
+        .order('created_at', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (filterType !== 'all') {

@@ -54,7 +54,6 @@ export interface Story {
   category: 'career' | 'achievement' | 'inspiration' | 'challenge' | 'legacy';
   image_url?: string;
   video_url?: string;
-  order_index: number;
   is_featured: boolean;
   created_by?: string;
   created_at?: string;
@@ -74,7 +73,6 @@ export interface Media {
   source?: string;
   year?: number;
   is_featured: boolean;
-  order_index: number;
   created_at?: string;
 }
 
