@@ -37,16 +37,25 @@ export default function AdminUsersScreen() {
 
   const fetchUsers = async () => {
     try {
+      console.log('Fetching users...');
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+      
+      console.log(`Fetched ${data?.length || 0} users`);
       setUsers(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os usuários');
+      Alert.alert(
+        'Erro', 
+        error.message || 'Não foi possível carregar os usuários. Verifique se as políticas RLS estão configuradas corretamente.'
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
