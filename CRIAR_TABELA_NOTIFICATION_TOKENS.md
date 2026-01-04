@@ -14,7 +14,8 @@ Execute o SQL abaixo no Supabase SQL Editor para criar a tabela `notification_to
 1. **Acesse o Supabase Dashboard**: https://supabase.com/dashboard
 2. **Vá para o projeto**: `lrkqhubivgozjkcdbisg`
 3. **Abra o SQL Editor**: https://supabase.com/dashboard/project/lrkqhubivgozjkcdbisg/sql/new
-4. **Cole e execute o SQL abaixo**:
+4. **Use o arquivo `EXECUTAR_NOTIFICATION_TOKENS_FINAL.sql` ou `EXECUTAR_NOTIFICATION_TOKENS_SIMPLES.sql`** (ambos funcionam)
+5. **Cole e execute o SQL**:
 
 ```sql
 -- Tabela para armazenar tokens de notificação push
@@ -55,26 +56,21 @@ CREATE POLICY "Users can update own tokens" ON notification_tokens
 CREATE POLICY "Users can delete own tokens" ON notification_tokens
   FOR DELETE USING (auth.uid() = user_id);
 
--- Admins podem ver todos os tokens
--- NOTA: Se a coluna is_admin não existir na tabela profiles, remova esta política
--- ou ajuste conforme a estrutura da sua tabela profiles
-CREATE POLICY "Admins can view all tokens" ON notification_tokens
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid() 
-      AND (profiles.is_admin = TRUE OR profiles.admin = TRUE)
-    )
-  );
 ```
 
-### ⚠️ Nota Importante
+### ✅ Arquivos Disponíveis
 
-Se você receber um erro sobre `profiles.is_admin` não existir, você tem duas opções:
+- **`EXECUTAR_NOTIFICATION_TOKENS_FINAL.sql`** ⭐ RECOMENDADO
+  - Versão completa sem dependências de colunas de admin
+  - Inclui verificações e comentários
+  
+- **`EXECUTAR_NOTIFICATION_TOKENS_SIMPLES.sql`**
+  - Versão simplificada
+  - Mesma funcionalidade, menos comentários
 
-**Opção 1**: Remover a última política (linha que começa com `CREATE POLICY "Admins can view all tokens"`)
+### ⚠️ Importante
 
-**Opção 2**: Verificar se a coluna de admin tem outro nome na sua tabela `profiles` e ajustar o SQL.
+Ambos os arquivos **NÃO** dependem de colunas de admin (`is_admin` ou `admin`), então não haverá erros relacionados a essas colunas.
 
 ### Verificar se funcionou
 
