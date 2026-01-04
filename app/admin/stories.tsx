@@ -178,7 +178,7 @@ export default function AdminStoriesScreen() {
 
       <GradientButton
         title="Nova História"
-        onPress={() => router.push('/admin/new-story')}
+        onPress={() => router.push('/admin/add-story')}
         variant="football"
         style={styles.addButton}
       />
