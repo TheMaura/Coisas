@@ -25,16 +25,7 @@ export default function StoriesScreen() {
   const [legendName, setLegendName] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const categories = [
-    { id: null, label: 'Todas', icon: 'list' },
-    { id: 'career', label: 'Carreira', icon: 'work' },
-    { id: 'achievement', label: 'Conquistas', icon: 'emoji-events' },
-    { id: 'inspiration', label: 'Inspiração', icon: 'lightbulb' },
-    { id: 'challenge', label: 'Desafios', icon: 'fitness-center' },
-    { id: 'legacy', label: 'Legado', icon: 'history' },
-  ];
+  // Filtros de categoria removidos - coluna 'category' não existe no banco de dados
 
   useEffect(() => {
     fetchLegendName();
