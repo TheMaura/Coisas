@@ -45,20 +45,25 @@ ON CONFLICT (id) DO NOTHING;
 ### Ou Cole Este SQL Diretamente:
 
 ```sql
+-- Remover políticas antigas se existirem
+DROP POLICY IF EXISTS "Authenticated users can upload media" ON storage.objects;
+DROP POLICY IF EXISTS "Public can view media" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can manage media" ON storage.objects;
+
 -- Política para permitir upload para usuários autenticados
-CREATE POLICY IF NOT EXISTS "Authenticated users can upload media"
+CREATE POLICY "Authenticated users can upload media"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (bucket_id = 'media');
 
 -- Política para permitir leitura pública de mídias
-CREATE POLICY IF NOT EXISTS "Public can view media"
+CREATE POLICY "Public can view media"
 ON storage.objects FOR SELECT
 TO public
 USING (bucket_id = 'media');
 
 -- Política para permitir que usuários autenticados gerenciem mídias
-CREATE POLICY IF NOT EXISTS "Authenticated users can manage media"
+CREATE POLICY "Authenticated users can manage media"
 ON storage.objects FOR ALL
 TO authenticated
 USING (bucket_id = 'media')
