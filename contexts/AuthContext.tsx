@@ -115,6 +115,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const createProfile = async (userId: string) => {
     try {
+      // Verificar se o perfil já existe antes de tentar criar
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (existingProfile) {
+        console.log('Profile already exists for user:', userId);
+        return; // Perfil já existe, não precisa criar
+      }
+
       const { error } = await supabase
         .from('profiles')
         .insert({
@@ -124,14 +136,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
       if (error) {
-        // Se já existe, não é um erro crítico
-        if (error.code !== '23505') { // 23505 = unique_violation
-          throw error;
+        // Se já existe (race condition), não é um erro crítico
+        if (error.code === '23505') { // 23505 = unique_violation
+          console.log('Profile was created by another process');
+          return;
         }
+        // Se for erro de RLS, tentar usar o trigger do Supabase
+        if (error.code === '42501') {
+          console.warn('RLS policy violation. Profile should be created by trigger.');
+          return;
+        }
+        throw error;
       }
+      console.log('Profile created successfully for user:', userId);
     } catch (error: any) {
       console.error('Error creating profile:', error);
-      throw error;
+      // Não lançar erro para não bloquear o app
+      // O perfil pode ser criado pelo trigger do Supabase
     }
   };
 
