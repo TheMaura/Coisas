@@ -471,8 +471,8 @@ SELECT
   'Momento Épico da Carreira',
   'Um dos momentos mais marcantes da carreira desta lenda do futebol, capturando a essência de sua grandeza e impacto no esporte.',
   'https://example.com/legend-moment.jpg', -- Substitua por URL real
-  true,
   'image',
+  true,
   NULL
 FROM legends 
 WHERE is_active = true 
@@ -492,8 +492,8 @@ SELECT
   'Imagem Histórica',
   'Uma imagem histórica que marca um momento importante na trajetória desta lenda do futebol, preservando a memória de sua contribuição ao esporte.',
   'https://example.com/legend-historic.jpg', -- Substitua por URL real
-  false,
   'image',
+  false,
   NULL
 FROM legends 
 WHERE is_active = true 
