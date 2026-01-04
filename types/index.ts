@@ -131,6 +131,67 @@ export interface ViewStat {
   viewed_at?: string;
 }
 
+export interface Trophy {
+  id: string;
+  legend_id: string;
+  name: string;
+  competition: string;
+  year: number;
+  season?: string;
+  description?: string;
+  image_url?: string;
+  category: 'club' | 'national' | 'individual' | 'youth';
+  is_major: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface YouTubeVideo {
+  id: string;
+  legend_id: string;
+  title: string;
+  description?: string;
+  youtube_id: string;
+  thumbnail_url?: string;
+  duration?: number;
+  view_count: number;
+  category: 'highlights' | 'documentary' | 'interview' | 'goals' | 'skills' | 'history';
+  is_featured: boolean;
+  published_at?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CareerMilestone {
+  id: string;
+  legend_id: string;
+  title: string;
+  description: string;
+  date: string;
+  milestone_type: 'debut' | 'transfer' | 'goal' | 'trophy' | 'record' | 'retirement' | 'award' | 'injury' | 'comeback';
+  importance: 'low' | 'normal' | 'high' | 'legendary';
+  image_url?: string;
+  video_url?: string;
+  club_name?: string;
+  competition_name?: string;
+  metadata?: Record<string, any>;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface QuizResult {
+  id: string;
+  user_id: string;
+  total_questions: number;
+  correct_answers: number;
+  score: number;
+  time_taken?: number;
+  difficulty: string;
+  quiz_type: string;
+  completed_at?: string;
+  created_at?: string;
+}
+
 export interface SearchFilters {
   query?: string;
   nationality?: string;

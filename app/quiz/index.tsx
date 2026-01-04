@@ -17,6 +17,8 @@ import { Theme } from '@/constants/Theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AnimatedCard } from '@/components/AnimatedCard';
 import { GradientButton } from '@/components/GradientButton';
+// Importar a versão expandida
+import QuizScreenExpanded from './index-expanded';
 
 interface QuizQuestion {
   legend: Legend;
@@ -24,7 +26,12 @@ interface QuizQuestion {
   correctAnswer: string;
 }
 
+// Redirecionar para a versão expandida
 export default function QuizScreen() {
+  return <QuizScreenExpanded />;
+}
+
+export function QuizScreenOld() {
   const [loading, setLoading] = useState(true);
   const [question, setQuestion] = useState<QuizQuestion | null>(null);
   const [score, setScore] = useState(0);

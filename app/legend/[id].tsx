@@ -301,6 +301,48 @@ export default function LegendDetailScreen() {
               <Text style={styles.actionCardSubtitle}>Imagens e vídeos</Text>
             </LinearGradient>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => router.push(`/legend/${id}/trophies`)}
+          >
+            <LinearGradient
+              colors={['#FFD700', '#FFA500']}
+              style={styles.actionCardGradient}
+            >
+              <MaterialIcons name="trophy" size={32} color="#fff" />
+              <Text style={styles.actionCardTitle}>Troféus</Text>
+              <Text style={styles.actionCardSubtitle}>Conquistas e prêmios</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => router.push(`/legend/${id}/history`)}
+          >
+            <LinearGradient
+              colors={['#667eea', '#764ba2']}
+              style={styles.actionCardGradient}
+            >
+              <MaterialIcons name="timeline" size={32} color="#fff" />
+              <Text style={styles.actionCardTitle}>Histórico Completo</Text>
+              <Text style={styles.actionCardSubtitle}>Marcos da carreira</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => router.push(`/legend/${id}/videos`)}
+          >
+            <LinearGradient
+              colors={['#FF0000', '#CC0000']}
+              style={styles.actionCardGradient}
+            >
+              <MaterialIcons name="video-library" size={32} color="#fff" />
+              <Text style={styles.actionCardTitle}>Vídeos do YouTube</Text>
+              <Text style={styles.actionCardSubtitle}>Highlights e documentários</Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>

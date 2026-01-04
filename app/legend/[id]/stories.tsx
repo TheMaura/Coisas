@@ -25,7 +25,8 @@ export default function StoriesScreen() {
   const [legendName, setLegendName] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  // Filtros de categoria removidos - coluna 'category' não existe no banco de dados
+  const [likedStories, setLikedStories] = useState<Set<string>>(new Set());
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'featured'>('all');
 
   useEffect(() => {
     fetchLegendName();
