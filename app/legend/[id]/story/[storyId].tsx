@@ -68,8 +68,9 @@ export default function StoryDetailScreen() {
     try {
       const isAvailable = await Sharing.isAvailableAsync();
       if (isAvailable) {
+        const contentPreview = story.content ? story.content.substring(0, 200) + '...' : '';
         await Sharing.shareAsync(story.image_url || '', {
-          message: `${story.title}\n\n${story.content.substring(0, 200)}...`,
+          message: `${story.title}\n\n${contentPreview}`,
         });
       }
     } catch (error) {
@@ -137,20 +138,22 @@ export default function StoryDetailScreen() {
       )}
 
       <View style={styles.content}>
-        <View style={styles.categoryBadge}>
-          <MaterialIcons
-            name={categoryIcons[story.category] as any}
-            size={20}
-            color="#fff"
-          />
-          <Text style={styles.categoryText}>
-            {story.category.charAt(0).toUpperCase() + story.category.slice(1)}
-          </Text>
-        </View>
+        {story.category && (
+          <View style={styles.categoryBadge}>
+            <MaterialIcons
+              name={categoryIcons[story.category] as any || 'article'}
+              size={20}
+              color="#fff"
+            />
+            <Text style={styles.categoryText}>
+              {story.category.charAt(0).toUpperCase() + story.category.slice(1)}
+            </Text>
+          </View>
+        )}
 
         <Text style={styles.title}>{story.title}</Text>
 
-        <Text style={styles.contentText}>{story.content}</Text>
+        <Text style={styles.contentText}>{story.content || 'Sem conteúdo disponível'}</Text>
 
         {story.is_featured && (
           <View style={styles.featuredBadge}>
