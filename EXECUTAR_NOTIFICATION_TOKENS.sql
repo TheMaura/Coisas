@@ -1,3 +1,8 @@
+-- ============================================
+-- CRIAR TABELA notification_tokens
+-- Execute este SQL no Supabase SQL Editor
+-- ============================================
+
 -- Tabela para armazenar tokens de notificação push
 CREATE TABLE IF NOT EXISTS notification_tokens (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -16,6 +21,13 @@ CREATE INDEX IF NOT EXISTS idx_notification_tokens_token ON notification_tokens(
 -- RLS para notification_tokens
 ALTER TABLE notification_tokens ENABLE ROW LEVEL SECURITY;
 
+-- Remover políticas antigas se existirem
+DROP POLICY IF EXISTS "Users can view own tokens" ON notification_tokens;
+DROP POLICY IF EXISTS "Users can insert own tokens" ON notification_tokens;
+DROP POLICY IF EXISTS "Users can update own tokens" ON notification_tokens;
+DROP POLICY IF EXISTS "Users can delete own tokens" ON notification_tokens;
+DROP POLICY IF EXISTS "Admins can view all tokens" ON notification_tokens;
+
 -- Usuários podem ver e gerenciar apenas seus próprios tokens
 CREATE POLICY "Users can view own tokens" ON notification_tokens
   FOR SELECT USING (auth.uid() = user_id);
@@ -30,18 +42,47 @@ CREATE POLICY "Users can delete own tokens" ON notification_tokens
   FOR DELETE USING (auth.uid() = user_id);
 
 -- Admins podem ver todos os tokens
--- NOTA: Ajuste conforme a estrutura da sua tabela profiles
--- Se não houver coluna is_admin, remova ou ajuste esta política
+-- IMPORTANTE: Se a coluna is_admin não existir na tabela profiles,
+-- remova ou comente as linhas abaixo
 CREATE POLICY "Admins can view all tokens" ON notification_tokens
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM profiles
       WHERE profiles.id = auth.uid() 
       AND (
-        (SELECT column_name FROM information_schema.columns 
-         WHERE table_name = 'profiles' AND column_name = 'is_admin') IS NOT NULL
+        -- Verificar se a coluna is_admin existe e é TRUE
+        (SELECT COUNT(*) FROM information_schema.columns 
+         WHERE table_schema = 'public' 
+         AND table_name = 'profiles' 
+         AND column_name = 'is_admin') > 0
         AND (SELECT is_admin FROM profiles WHERE id = auth.uid()) = TRUE
       )
     )
   );
+
+-- ============================================
+-- VERIFICAÇÃO
+-- ============================================
+
+-- Verificar se a tabela foi criada
+SELECT 
+  table_name,
+  column_name,
+  data_type
+FROM information_schema.columns
+WHERE table_name = 'notification_tokens'
+ORDER BY ordinal_position;
+
+-- Verificar se as políticas foram criadas
+SELECT
+  policyname,
+  cmd,
+  roles
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename = 'notification_tokens';
+
+-- ============================================
+-- FIM
+-- ============================================
 
