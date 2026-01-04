@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import * as FileSystem from 'expo-file-system';
 import { supabase } from '@/lib/supabase';
 import { Theme } from '@/constants/Theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -44,7 +45,7 @@ export default function EditProfileScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -65,18 +66,55 @@ export default function EditProfileScreen() {
     setUploadingImage(true);
     try {
       // Criar nome único para o arquivo
-      const fileExt = uri.split('.').pop();
+      const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
-      // Converter URI para blob
-      const response = await fetch(uri);
-      const blob = await response.blob();
+      // Ler arquivo usando FileSystem (funciona corretamente no React Native)
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Converter base64 para ArrayBuffer
+      // Função helper para decodificar base64 no mobile
+      const base64Decode = (str: string): string => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        let output = '';
+        str = str.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+        for (let i = 0; i < str.length; i += 4) {
+          const enc1 = chars.indexOf(str.charAt(i));
+          const enc2 = chars.indexOf(str.charAt(i + 1));
+          const enc3 = chars.indexOf(str.charAt(i + 2));
+          const enc4 = chars.indexOf(str.charAt(i + 3));
+          const chr1 = (enc1 << 2) | (enc2 >> 4);
+          const chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+          const chr3 = ((enc3 & 3) << 6) | enc4;
+          output += String.fromCharCode(chr1);
+          if (enc3 !== 64) output += String.fromCharCode(chr2);
+          if (enc4 !== 64) output += String.fromCharCode(chr3);
+        }
+        return output;
+      };
+
+      let bytes: Uint8Array;
+      if (Platform.OS === 'web') {
+        const binaryString = atob(base64);
+        bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+      } else {
+        const decoded = base64Decode(base64);
+        bytes = new Uint8Array(decoded.length);
+        for (let i = 0; i < decoded.length; i++) {
+          bytes[i] = decoded.charCodeAt(i);
+        }
+      }
 
       // Upload para Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, blob, {
+        .upload(filePath, bytes, {
           contentType: `image/${fileExt}`,
           upsert: true,
         });

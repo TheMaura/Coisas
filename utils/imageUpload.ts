@@ -1,10 +1,38 @@
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { supabase } from '@/lib/supabase';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 export interface UploadResult {
   url: string;
   path: string;
+}
+
+/**
+ * Decodifica string base64 para string binária (compatível com React Native)
+ */
+function base64Decode(base64: string): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let output = '';
+  
+  base64 = base64.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+  
+  for (let i = 0; i < base64.length; i += 4) {
+    const enc1 = chars.indexOf(base64.charAt(i));
+    const enc2 = chars.indexOf(base64.charAt(i + 1));
+    const enc3 = chars.indexOf(base64.charAt(i + 2));
+    const enc4 = chars.indexOf(base64.charAt(i + 3));
+    
+    const chr1 = (enc1 << 2) | (enc2 >> 4);
+    const chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+    const chr3 = ((enc3 & 3) << 6) | enc4;
+    
+    output += String.fromCharCode(chr1);
+    if (enc3 !== 64) output += String.fromCharCode(chr2);
+    if (enc4 !== 64) output += String.fromCharCode(chr3);
+  }
+  
+  return output;
 }
 
 /**
@@ -22,7 +50,7 @@ export const pickImage = async (): Promise<string | null> => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
@@ -56,20 +84,40 @@ export const uploadImage = async (
     const finalFileName = fileName || `${timestamp}-${randomString}.${fileExt}`;
     const filePath = `${folder}/${finalFileName}`;
 
-    // Converter URI para blob
-    const response = await fetch(uri);
-    const blob = await response.blob();
-
     // Verificar se o usuário está autenticado
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       throw new Error('Você precisa estar logado para fazer upload de imagens');
     }
 
+    // Ler arquivo usando FileSystem (funciona corretamente no React Native)
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Converter base64 para ArrayBuffer
+    let bytes: Uint8Array;
+    
+    if (Platform.OS === 'web') {
+      // Web: usar atob
+      const binaryString = atob(base64);
+      bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+    } else {
+      // Mobile: decodificar base64 manualmente
+      const decoded = base64Decode(base64);
+      bytes = new Uint8Array(decoded.length);
+      for (let i = 0; i < decoded.length; i++) {
+        bytes[i] = decoded.charCodeAt(i);
+      }
+    }
+
     // Upload para Supabase Storage
     const { data, error: uploadError } = await supabase.storage
       .from('media')
-      .upload(filePath, blob, {
+      .upload(filePath, bytes, {
         contentType: `image/${fileExt}`,
         upsert: true,
         cacheControl: '3600',
@@ -130,7 +178,7 @@ export const pickMultipleImages = async (): Promise<string[]> => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       quality: 0.8,
     });
@@ -165,4 +213,3 @@ export const uploadMultipleImages = async (
 
   return results;
 };
-
