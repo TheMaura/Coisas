@@ -39,7 +39,7 @@ export default function StoriesScreen() {
   useEffect(() => {
     fetchLegendName();
     fetchStories();
-  }, [id, selectedCategory]);
+  }, [id]);
 
   const fetchLegendName = async () => {
     try {
@@ -63,9 +63,10 @@ export default function StoriesScreen() {
         .order('created_at', { ascending: false })
         .order('created_at', { ascending: false });
 
-      if (selectedCategory) {
-        query = query.eq('category', selectedCategory);
-      }
+      // Filtro por categoria removido - coluna 'category' não existe no banco
+      // if (selectedCategory) {
+      //   query = query.eq('category', selectedCategory);
+      // }
 
       const { data, error } = await query;
 

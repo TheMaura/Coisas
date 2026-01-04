@@ -23,12 +23,13 @@ export default function MediaScreen() {
   const [legendName, setLegendName] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filterType, setFilterType] = useState<'all' | 'image' | 'video'>('all');
+  // Removido filtro por tipo - coluna 'type' não existe no banco
+  // const [filterType, setFilterType] = useState<'all' | 'image' | 'video'>('all');
 
   useEffect(() => {
     fetchLegendName();
     fetchMedia();
-  }, [id, filterType]);
+  }, [id]);
 
   const fetchLegendName = async () => {
     try {
@@ -49,12 +50,7 @@ export default function MediaScreen() {
         .from('media')
         .select('*')
         .eq('legend_id', id)
-        .order('created_at', { ascending: false })
         .order('created_at', { ascending: false });
-
-      if (filterType !== 'all') {
-        query = query.eq('type', filterType);
-      }
 
       const { data, error } = await query;
 
@@ -113,42 +109,7 @@ export default function MediaScreen() {
           </View>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersContainer}
-        >
-          {(['all', 'image', 'video'] as const).map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.filterChip,
-                filterType === type && styles.filterChipActive,
-              ]}
-              onPress={() => setFilterType(type)}
-            >
-              <MaterialIcons
-                name={
-                  type === 'all'
-                    ? 'photo-library'
-                    : type === 'image'
-                    ? 'image'
-                    : 'videocam'
-                }
-                size={18}
-                color={filterType === type ? Theme.colors.text : Theme.colors.textSecondary}
-              />
-              <Text
-                style={[
-                  styles.filterChipText,
-                  filterType === type && styles.filterChipTextActive,
-                ]}
-              >
-                {type === 'all' ? 'Todas' : type === 'image' ? 'Imagens' : 'Vídeos'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* Filtros removidos - coluna 'type' não existe no banco de dados */}
       </LinearGradient>
 
       <ScrollView
