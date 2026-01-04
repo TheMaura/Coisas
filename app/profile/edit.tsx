@@ -130,6 +130,7 @@ export default function EditProfileScreen() {
 
       // Atualizar perfil com nova URL
       await updateProfile({ avatar_url: publicUrl });
+      await refreshProfile(); // Garantir que o perfil seja atualizado
       Alert.alert('Sucesso', 'Foto atualizada com sucesso!');
     } catch (error: any) {
       console.error('Error uploading image:', error);

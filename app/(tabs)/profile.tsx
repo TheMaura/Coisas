@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,9 @@ import {
   ScrollView,
   Alert,
   StatusBar,
+  Image,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -17,7 +18,14 @@ import { AnimatedCard } from '@/components/AnimatedCard';
 import { GradientButton } from '@/components/GradientButton';
 
 export default function ProfileScreen() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
+
+  // Recarregar perfil quando a tela receber foco
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshProfile();
+    }, [refreshProfile])
+  );
 
   const handleSignOut = async () => {
     Alert.alert('Sair', 'Deseja realmente sair?', [
@@ -45,15 +53,28 @@ export default function ProfileScreen() {
         style={styles.header}
       >
         <View style={styles.avatarContainer}>
-          <LinearGradient
-            colors={Theme.colors.gradientPrimary}
-            style={styles.avatarGradient}
-          >
-            <MaterialIcons name="person" size={48} color={Theme.colors.text} />
-          </LinearGradient>
+          {profile?.avatar_url ? (
+            <Image
+              source={{ uri: profile.avatar_url }}
+              style={styles.avatarImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <LinearGradient
+              colors={Theme.colors.gradientPrimary}
+              style={styles.avatarGradient}
+            >
+              <MaterialIcons name="person" size={48} color={Theme.colors.text} />
+            </LinearGradient>
+          )}
         </View>
-        <Text style={styles.name}>{profile?.full_name || 'Usuário'}</Text>
+        <Text style={styles.name}>{profile?.full_name || profile?.name || 'Usuário'}</Text>
         <Text style={styles.email}>{user?.email}</Text>
+        {profile?.bio && (
+          <Text style={styles.bio} numberOfLines={3}>
+            {profile.bio}
+          </Text>
+        )}
         {profile?.is_admin && (
           <View style={styles.adminBadge}>
             <MaterialIcons name="admin-panel-settings" size={16} color="#FFD700" />
@@ -125,6 +146,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...Theme.shadows.lg,
   },
+  avatarImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    ...Theme.shadows.lg,
+  },
   name: {
     ...Theme.typography.h1,
     fontSize: 28,
@@ -134,6 +161,14 @@ const styles = StyleSheet.create({
     ...Theme.typography.body,
     color: Theme.colors.textSecondary,
     marginBottom: Theme.spacing.sm,
+  },
+  bio: {
+    ...Theme.typography.body,
+    color: Theme.colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: Theme.spacing.lg,
+    marginTop: Theme.spacing.sm,
+    marginBottom: Theme.spacing.xs,
   },
   adminBadge: {
     flexDirection: 'row',
