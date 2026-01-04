@@ -182,6 +182,27 @@ CREATE INDEX IF NOT EXISTS idx_media_likes_media_id ON media_likes(media_id);
 -- 9. POLÍTICAS RLS PARA NOVAS TABELAS
 -- ============================================
 
+-- Quiz Questions: Todos podem ver perguntas ativas, apenas admins podem modificar
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'quiz_questions') THEN
+    ALTER TABLE quiz_questions ENABLE ROW LEVEL SECURITY;
+    
+    DROP POLICY IF EXISTS "Anyone can view quiz questions" ON quiz_questions;
+    CREATE POLICY "Anyone can view quiz questions" ON quiz_questions
+      FOR SELECT USING (is_active = true OR is_active IS NULL);
+    
+    DROP POLICY IF EXISTS "Admins can manage quiz questions" ON quiz_questions;
+    CREATE POLICY "Admins can manage quiz questions" ON quiz_questions
+      FOR ALL USING (
+        EXISTS (
+          SELECT 1 FROM profiles
+          WHERE profiles.id = auth.uid() AND profiles.is_admin = true
+        )
+      );
+  END IF;
+END $$;
+
 -- Troféus: Todos podem ver, apenas admins podem modificar
 ALTER TABLE trophies ENABLE ROW LEVEL SECURITY;
 
