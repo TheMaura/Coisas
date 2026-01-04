@@ -150,64 +150,6 @@ export default function AdminScreen() {
         <Text style={styles.headerSubtitle}>Gerenciar Lendas</Text>
       </LinearGradient>
 
-      <View style={styles.actionsContainer}>
-        <GradientButton
-          title="Nova Lenda"
-          onPress={() => router.push('/admin/create')}
-          variant="football"
-          style={styles.actionButton}
-        />
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push('/admin/stories')}
-        >
-          <MaterialIcons name="article" size={24} color={Theme.colors.text} />
-          <Text style={styles.menuButtonText}>Histórias</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push('/admin/media')}
-        >
-          <MaterialIcons name="photo-library" size={24} color={Theme.colors.text} />
-          <Text style={styles.menuButtonText}>Mídias</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push('/admin/users')}
-        >
-          <MaterialIcons name="people" size={24} color={Theme.colors.text} />
-          <Text style={styles.menuButtonText}>Usuários</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push('/admin/notifications')}
-        >
-          <MaterialIcons name="notifications" size={24} color={Theme.colors.text} />
-          <Text style={styles.menuButtonText}>Enviar Notificação</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push('/admin/trophies')}
-        >
-          <MaterialIcons name="trophy" size={24} color={Theme.colors.text} />
-          <Text style={styles.menuButtonText}>Troféus</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push('/admin/youtube-videos')}
-        >
-          <MaterialIcons name="video-library" size={24} color={Theme.colors.text} />
-          <Text style={styles.menuButtonText}>Vídeos YouTube</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => router.push('/admin/career-milestones')}
-        >
-          <MaterialIcons name="timeline" size={24} color={Theme.colors.text} />
-          <Text style={styles.menuButtonText}>Marcos da Carreira</Text>
-        </TouchableOpacity>
-      </View>
-
       <FlatList
         data={legends}
         renderItem={renderLegendItem}
@@ -220,13 +162,72 @@ export default function AdminScreen() {
             tintColor={Theme.colors.primary}
           />
         }
+        ListHeaderComponent={
+          <View style={styles.actionsContainer}>
+            <GradientButton
+              title="Nova Lenda"
+              onPress={() => router.push('/admin/create')}
+              variant="football"
+              style={styles.actionButton}
+            />
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.push('/admin/stories')}
+            >
+              <MaterialIcons name="article" size={24} color={Theme.colors.text} />
+              <Text style={styles.menuButtonText}>Histórias</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.push('/admin/media')}
+            >
+              <MaterialIcons name="photo-library" size={24} color={Theme.colors.text} />
+              <Text style={styles.menuButtonText}>Mídias</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.push('/admin/users')}
+            >
+              <MaterialIcons name="people" size={24} color={Theme.colors.text} />
+              <Text style={styles.menuButtonText}>Usuários</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.push('/admin/notifications')}
+            >
+              <MaterialIcons name="notifications" size={24} color={Theme.colors.text} />
+              <Text style={styles.menuButtonText}>Enviar Notificação</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.push('/admin/trophies')}
+            >
+              <MaterialIcons name="trophy" size={24} color={Theme.colors.text} />
+              <Text style={styles.menuButtonText}>Troféus</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.push('/admin/youtube-videos')}
+            >
+              <MaterialIcons name="video-library" size={24} color={Theme.colors.text} />
+              <Text style={styles.menuButtonText}>Vídeos YouTube</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => router.push('/admin/career-milestones')}
+            >
+              <MaterialIcons name="timeline" size={24} color={Theme.colors.text} />
+              <Text style={styles.menuButtonText}>Marcos da Carreira</Text>
+            </TouchableOpacity>
+          </View>
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <MaterialIcons name="sports-soccer" size={64} color={Theme.colors.textTertiary} />
             <Text style={styles.emptyText}>Nenhuma lenda cadastrada</Text>
           </View>
         }
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
       />
     </View>
   );
@@ -260,6 +261,7 @@ const styles = StyleSheet.create({
   actionsContainer: {
     padding: Theme.spacing.md,
     paddingTop: Theme.spacing.lg,
+    paddingBottom: Theme.spacing.md,
     gap: Theme.spacing.md,
   },
   actionButton: {
