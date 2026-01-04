@@ -113,9 +113,9 @@ export default function EditProfileScreen() {
         }
       }
 
-      // Upload para Supabase Storage
+      // Upload para Supabase Storage (usar bucket 'media' que já existe)
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('media')
         .upload(filePath, bytes, {
           contentType: `image/${fileExt}`,
           upsert: true,
@@ -125,7 +125,7 @@ export default function EditProfileScreen() {
 
       // Obter URL pública
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from('media')
         .getPublicUrl(filePath);
 
       // Atualizar perfil com nova URL
