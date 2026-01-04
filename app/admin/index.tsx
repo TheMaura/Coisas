@@ -150,12 +150,35 @@ export default function AdminScreen() {
         <Text style={styles.headerSubtitle}>Gerenciar Lendas</Text>
       </LinearGradient>
 
-      <GradientButton
-        title="Nova Lenda"
-        onPress={() => router.push('/admin/create')}
-        variant="football"
-        style={styles.addButton}
-      />
+      <View style={styles.actionsContainer}>
+        <GradientButton
+          title="Nova Lenda"
+          onPress={() => router.push('/admin/create')}
+          variant="football"
+          style={styles.actionButton}
+        />
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push('/admin/stories')}
+        >
+          <MaterialIcons name="article" size={24} color={Theme.colors.text} />
+          <Text style={styles.menuButtonText}>Histórias</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push('/admin/media')}
+        >
+          <MaterialIcons name="photo-library" size={24} color={Theme.colors.text} />
+          <Text style={styles.menuButtonText}>Mídias</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push('/admin/users')}
+        >
+          <MaterialIcons name="people" size={24} color={Theme.colors.text} />
+          <Text style={styles.menuButtonText}>Usuários</Text>
+        </TouchableOpacity>
+      </View>
 
       <FlatList
         data={legends}
@@ -206,9 +229,27 @@ const styles = StyleSheet.create({
     ...Theme.typography.body,
     color: Theme.colors.textSecondary,
   },
-  addButton: {
-    margin: Theme.spacing.md,
-    marginTop: Theme.spacing.lg,
+  actionsContainer: {
+    padding: Theme.spacing.md,
+    paddingTop: Theme.spacing.lg,
+    gap: Theme.spacing.md,
+  },
+  actionButton: {
+    marginBottom: Theme.spacing.sm,
+  },
+  menuButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Theme.colors.backgroundCard,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.md,
+    gap: Theme.spacing.md,
+    ...Theme.shadows.sm,
+  },
+  menuButtonText: {
+    ...Theme.typography.body,
+    fontWeight: '600',
+    flex: 1,
   },
   listContent: {
     padding: Theme.spacing.md,
