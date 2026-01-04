@@ -8,9 +8,16 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { ImagePickerButton } from '@/components/ImagePickerButton';
+import { GradientButton } from '@/components/GradientButton';
+import { Theme } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons } from '@expo/vector-icons';
+import { AnimatedCard } from '@/components/AnimatedCard';
 
 export default function CreateLegendScreen() {
   const [loading, setLoading] = useState(false);
@@ -29,6 +36,21 @@ export default function CreateLegendScreen() {
   const handleSave = async () => {
     if (!formData.name) {
       Alert.alert('Erro', 'O nome é obrigatório');
+      return;
+    }
+
+    if (!formData.nationality) {
+      Alert.alert('Erro', 'A nacionalidade é obrigatória');
+      return;
+    }
+
+    if (!formData.position) {
+      Alert.alert('Erro', 'A posição é obrigatória');
+      return;
+    }
+
+    if (!formData.biography) {
+      Alert.alert('Erro', 'A biografia é obrigatória');
       return;
     }
 
@@ -65,96 +87,129 @@ export default function CreateLegendScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.label}>Nome *</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.name}
-          onChangeText={(text) => setFormData({ ...formData, name: text })}
-          placeholder="Ex: Pelé"
-        />
-
-        <Text style={styles.label}>Nome Completo</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.full_name}
-          onChangeText={(text) => setFormData({ ...formData, full_name: text })}
-          placeholder="Ex: Edson Arantes do Nascimento"
-        />
-
-        <Text style={styles.label}>Nacionalidade *</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.nationality}
-          onChangeText={(text) => setFormData({ ...formData, nationality: text })}
-          placeholder="Ex: Brasileiro"
-        />
-
-        <Text style={styles.label}>Posição *</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.position}
-          onChangeText={(text) => setFormData({ ...formData, position: text })}
-          placeholder="Ex: Atacante"
-        />
-
-        <Text style={styles.label}>Clube Atual</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.current_club}
-          onChangeText={(text) => setFormData({ ...formData, current_club: text })}
-          placeholder="Ex: Santos FC"
-        />
-
-        <Text style={styles.label}>Data de Nascimento</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.birth_date}
-          onChangeText={(text) => setFormData({ ...formData, birth_date: text })}
-          placeholder="Ex: 23/10/1940"
-        />
-
-        <Text style={styles.label}>Biografia *</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          value={formData.biography}
-          onChangeText={(text) => setFormData({ ...formData, biography: text })}
-          placeholder="Escreva a biografia da lenda..."
-          multiline
-          numberOfLines={6}
-        />
-
-        <Text style={styles.label}>Conquistas (uma por linha)</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          value={formData.achievements}
-          onChangeText={(text) => setFormData({ ...formData, achievements: text })}
-          placeholder="Ex: 3 Copas do Mundo&#10;1000 gols&#10;Campeão Mundial"
-          multiline
-          numberOfLines={4}
-        />
-
-        <Text style={styles.label}>URL da Imagem</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.image_url}
-          onChangeText={(text) => setFormData({ ...formData, image_url: text })}
-          placeholder="https://..."
-          autoCapitalize="none"
-        />
-
-
-        <TouchableOpacity
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>Salvar</Text>
-          )}
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={Theme.colors.gradientDark}
+        style={styles.header}
+      >
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color={Theme.colors.text} />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Nova Lenda</Text>
+      </LinearGradient>
+
+      <View style={styles.content}>
+        <AnimatedCard delay={50}>
+          <ImagePickerButton
+            value={formData.image_url}
+            onChange={(url) => setFormData({ ...formData, image_url: url || '' })}
+            label="Foto da Lenda"
+            folder="legends"
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={100}>
+          <Text style={styles.label}>Nome *</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.name}
+            onChangeText={(text) => setFormData({ ...formData, name: text })}
+            placeholder="Ex: Pelé"
+            placeholderTextColor={Theme.colors.textTertiary}
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={150}>
+          <Text style={styles.label}>Nome Completo</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.full_name}
+            onChangeText={(text) => setFormData({ ...formData, full_name: text })}
+            placeholder="Ex: Edson Arantes do Nascimento"
+            placeholderTextColor={Theme.colors.textTertiary}
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={200}>
+          <Text style={styles.label}>Nacionalidade *</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.nationality}
+            onChangeText={(text) => setFormData({ ...formData, nationality: text })}
+            placeholder="Ex: Brasileiro"
+            placeholderTextColor={Theme.colors.textTertiary}
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={250}>
+          <Text style={styles.label}>Posição *</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.position}
+            onChangeText={(text) => setFormData({ ...formData, position: text })}
+            placeholder="Ex: Atacante"
+            placeholderTextColor={Theme.colors.textTertiary}
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={300}>
+          <Text style={styles.label}>Clube Atual</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.current_club}
+            onChangeText={(text) => setFormData({ ...formData, current_club: text })}
+            placeholder="Ex: Santos FC"
+            placeholderTextColor={Theme.colors.textTertiary}
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={350}>
+          <Text style={styles.label}>Data de Nascimento</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.birth_date}
+            onChangeText={(text) => setFormData({ ...formData, birth_date: text })}
+            placeholder="Ex: 23/10/1940"
+            placeholderTextColor={Theme.colors.textTertiary}
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={400}>
+          <Text style={styles.label}>Biografia *</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            value={formData.biography}
+            onChangeText={(text) => setFormData({ ...formData, biography: text })}
+            placeholder="Escreva a biografia da lenda..."
+            placeholderTextColor={Theme.colors.textTertiary}
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={450}>
+          <Text style={styles.label}>Conquistas (uma por linha)</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            value={formData.achievements}
+            onChangeText={(text) => setFormData({ ...formData, achievements: text })}
+            placeholder="Ex: 3 Copas do Mundo&#10;1000 gols&#10;Campeão Mundial"
+            placeholderTextColor={Theme.colors.textTertiary}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </AnimatedCard>
+
+        <AnimatedCard delay={500}>
+          <GradientButton
+            title={loading ? 'Salvando...' : 'Salvar Lenda'}
+            onPress={handleSave}
+            loading={loading}
+            variant="football"
+          />
+        </AnimatedCard>
       </View>
     </ScrollView>
   );
@@ -163,45 +218,45 @@ export default function CreateLegendScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Theme.colors.background,
   },
-  form: {
-    padding: 20,
+  header: {
+    paddingTop: 60,
+    paddingBottom: Theme.spacing.lg,
+    paddingHorizontal: Theme.spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  headerTitle: {
+    ...Theme.typography.h1,
+    fontSize: 28,
+  },
+  content: {
+    padding: Theme.spacing.md,
   },
   label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 8,
-    marginTop: 15,
+    ...Theme.typography.body,
+    fontWeight: '600',
+    marginBottom: Theme.spacing.sm,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: Theme.colors.backgroundLight,
+    borderRadius: Theme.borderRadius.md,
+    padding: Theme.spacing.md,
     fontSize: 16,
-    backgroundColor: '#fff',
+    color: Theme.colors.text,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
   },
   textArea: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  saveButton: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 30,
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    minHeight: 120,
+    paddingTop: Theme.spacing.md,
   },
 });
-

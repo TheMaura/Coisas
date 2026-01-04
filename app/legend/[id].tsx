@@ -272,6 +272,36 @@ export default function LegendDetailScreen() {
             ))}
           </View>
         )}
+
+        <View style={styles.actionsSection}>
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => router.push(`/legend/${id}/stories`)}
+          >
+            <LinearGradient
+              colors={Theme.colors.gradientPrimary}
+              style={styles.actionCardGradient}
+            >
+              <MaterialIcons name="article" size={32} color="#fff" />
+              <Text style={styles.actionCardTitle}>Histórias Inspiradoras</Text>
+              <Text style={styles.actionCardSubtitle}>Descubra a trajetória</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => router.push(`/legend/${id}/media`)}
+          >
+            <LinearGradient
+              colors={Theme.colors.gradientFootball}
+              style={styles.actionCardGradient}
+            >
+              <MaterialIcons name="photo-library" size={32} color="#fff" />
+              <Text style={styles.actionCardTitle}>Galeria de Mídias</Text>
+              <Text style={styles.actionCardSubtitle}>Imagens e vídeos</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );
@@ -405,5 +435,32 @@ const styles = StyleSheet.create({
     ...Theme.typography.h3,
     color: Theme.colors.error,
     marginTop: Theme.spacing.md,
+  },
+  actionsSection: {
+    marginTop: Theme.spacing.lg,
+    gap: Theme.spacing.md,
+  },
+  actionCard: {
+    borderRadius: Theme.borderRadius.lg,
+    overflow: 'hidden',
+    ...Theme.shadows.lg,
+  },
+  actionCardGradient: {
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+    minHeight: 120,
+    justifyContent: 'center',
+  },
+  actionCardTitle: {
+    ...Theme.typography.h3,
+    color: '#fff',
+    marginTop: Theme.spacing.sm,
+    textAlign: 'center',
+  },
+  actionCardSubtitle: {
+    ...Theme.typography.body,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: Theme.spacing.xs,
+    textAlign: 'center',
   },
 });
