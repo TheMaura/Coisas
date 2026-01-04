@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,7 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -23,7 +22,7 @@ export default function ProfileScreen() {
 
   // Recarregar perfil quando a tela receber foco
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       refreshProfile();
     }, [refreshProfile])
   );
