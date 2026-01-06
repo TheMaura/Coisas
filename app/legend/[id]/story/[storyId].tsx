@@ -17,13 +17,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { useAuth } from '@/contexts/AuthContext';
-import * as Sharing from 'expo-sharing';
+import { ShareMenu } from '@/components/ShareMenu';
 
 export default function StoryDetailScreen() {
   const { id, storyId } = useLocalSearchParams<{ id: string; storyId: string }>();
   const { user } = useAuth();
   const [story, setStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   useEffect(() => {
     fetchStory();
@@ -63,19 +64,9 @@ export default function StoryDetailScreen() {
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = () => {
     if (!story) return;
-    try {
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (isAvailable) {
-        const contentPreview = story.content ? story.content.substring(0, 200) + '...' : '';
-        await Sharing.shareAsync(story.image_url || '', {
-          message: `${story.title}\n\n${contentPreview}`,
-        });
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
+    setShowShareMenu(true);
   };
 
   if (loading) {
@@ -162,6 +153,17 @@ export default function StoryDetailScreen() {
           </View>
         )}
       </View>
+      
+      <ShareMenu
+        visible={showShareMenu}
+        onClose={() => setShowShareMenu(false)}
+        content={{
+          title: story.title,
+          text: story.content?.substring(0, 200) || '',
+          url: `https://futebol-legends.app/legend/${id}/story/${storyId}`,
+          image: story.image_url,
+        }}
+      />
     </ScrollView>
   );
 }

@@ -21,7 +21,7 @@ export default function RootLayout() {
         >
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="legend/[id]" options={{ title: 'Lenda' }} />
+          {/* Rotas são detectadas automaticamente pelo Expo Router */}
           <Stack.Screen name="profile/edit" options={{ title: 'Editar Perfil' }} />
           <Stack.Screen name="admin" options={{ headerShown: false }} />
         </Stack>

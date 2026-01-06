@@ -15,7 +15,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Legend } from '@/types';
-import * as Sharing from 'expo-sharing';
+import { ShareMenu } from '@/components/ShareMenu';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,6 +32,7 @@ export default function LegendDetailScreen() {
   const [legend, setLegend] = useState<Legend | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   const scale = useSharedValue(1);
 
@@ -110,21 +111,9 @@ export default function LegendDetailScreen() {
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = () => {
     if (!legend) return;
-
-    try {
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (isAvailable) {
-        await Sharing.shareAsync(legend.image_url || '', {
-          message: `Conheça ${legend.name}: ${legend.biography?.substring(0, 100)}...`,
-        });
-      } else {
-        Alert.alert('Erro', 'Compartilhamento não disponível neste dispositivo');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
+    setShowShareMenu(true);
   };
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
@@ -345,6 +334,17 @@ export default function LegendDetailScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      
+      <ShareMenu
+        visible={showShareMenu}
+        onClose={() => setShowShareMenu(false)}
+        content={{
+          title: legend.name,
+          text: legend.biography?.substring(0, 200) || '',
+          url: `https://futebol-legends.app/legend/${legend.id}`,
+          image: legend.image_url,
+        }}
+      />
     </ScrollView>
   );
 }
@@ -506,3 +506,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+

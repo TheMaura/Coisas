@@ -7,8 +7,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   StatusBar,
-  TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -84,37 +82,6 @@ export default function HomeScreen() {
           </View>
         </View>
       </LinearGradient>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.quickActionsContainer}
-      >
-        <TouchableOpacity
-          style={styles.quickActionButton}
-          onPress={() => router.push('/quiz')}
-        >
-          <LinearGradient
-            colors={Theme.colors.gradientPrimary}
-            style={styles.quickActionGradient}
-          >
-            <MaterialIcons name="quiz" size={24} color="#fff" />
-          </LinearGradient>
-          <Text style={styles.quickActionText}>Quiz</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.quickActionButton}
-          onPress={() => router.push('/compare')}
-        >
-          <LinearGradient
-            colors={Theme.colors.gradientPrimary}
-            style={styles.quickActionGradient}
-          >
-            <MaterialIcons name="compare" size={24} color="#fff" />
-          </LinearGradient>
-          <Text style={styles.quickActionText}>Comparar</Text>
-        </TouchableOpacity>
-      </ScrollView>
 
       <FlatList
         data={legends}
@@ -206,27 +173,5 @@ const styles = StyleSheet.create({
     ...Theme.typography.body,
     color: Theme.colors.textTertiary,
     textAlign: 'center',
-  },
-  quickActionsContainer: {
-    paddingHorizontal: Theme.spacing.md,
-    paddingTop: Theme.spacing.md,
-    paddingBottom: Theme.spacing.sm,
-    gap: Theme.spacing.md,
-  },
-  quickActionButton: {
-    alignItems: 'center',
-    marginRight: Theme.spacing.md,
-  },
-  quickActionGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Theme.spacing.xs,
-  },
-  quickActionText: {
-    ...Theme.typography.caption,
-    fontWeight: '600',
   },
 });

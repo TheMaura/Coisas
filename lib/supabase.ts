@@ -70,5 +70,38 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
     flowType: 'pkce', // Usar PKCE flow para melhor segurança
   },
+  // Configurações globais do cliente
+  global: {
+    headers: {
+      'x-client-info': 'futebol-legends',
+    },
+  },
+  // Configurações de realtime (se necessário)
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
 });
+
+// Função para verificar a conexão com o Supabase
+export const checkSupabaseConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('legends').select('count').limit(1);
+    if (error) {
+      console.error('Erro ao conectar com Supabase:', error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Erro de conexão com Supabase:', error);
+    return false;
+  }
+};
+
+// Log das configurações em desenvolvimento
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Supabase URL:', supabaseUrl);
+  console.log('Supabase configurado com sucesso');
+}
 

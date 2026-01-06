@@ -38,19 +38,26 @@ export default function NotificationsScreen() {
     try {
       console.log('Fetching notifications for user:', user.id);
       
+      // Calcular a data de 24 horas atrás
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+      
       // Buscar notificações do usuário OU notificações gerais (sem user_id)
-      // Usar duas queries separadas para garantir que ambas funcionem
+      // Filtrar apenas notificações das últimas 24 horas
       const [userNotifications, generalNotifications] = await Promise.all([
         supabase
           .from('notifications')
           .select('*')
           .eq('user_id', user.id)
+          .gte('created_at', twentyFourHoursAgoISO)
           .order('created_at', { ascending: false })
           .limit(50),
         supabase
           .from('notifications')
           .select('*')
           .is('user_id', null)
+          .gte('created_at', twentyFourHoursAgoISO)
           .order('created_at', { ascending: false })
           .limit(50),
       ]);
@@ -74,15 +81,23 @@ export default function NotificationsScreen() {
           index === self.findIndex((n) => n.id === notification.id)
       );
 
+      // Filtrar novamente no lado do cliente para garantir (notificações com menos de 24 horas)
+      const now = new Date();
+      const filteredNotifications = uniqueNotifications.filter((notification) => {
+        const notificationDate = new Date(notification.created_at || 0);
+        const hoursDiff = (now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60);
+        return hoursDiff <= 24;
+      });
+
       // Ordenar por data mais recente
-      uniqueNotifications.sort((a, b) => {
+      filteredNotifications.sort((a, b) => {
         const dateA = new Date(a.created_at || 0).getTime();
         const dateB = new Date(b.created_at || 0).getTime();
         return dateB - dateA;
       });
 
-      console.log(`Fetched ${uniqueNotifications.length} notifications (${userNotifications.data?.length || 0} user-specific, ${generalNotifications.data?.length || 0} general)`);
-      setNotifications(uniqueNotifications.slice(0, 50));
+      console.log(`Fetched ${filteredNotifications.length} notifications (${userNotifications.data?.length || 0} user-specific, ${generalNotifications.data?.length || 0} general) - filtered to last 24 hours`);
+      setNotifications(filteredNotifications.slice(0, 50));
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
