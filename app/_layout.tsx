@@ -1,0 +1,32 @@
+import { Stack } from 'expo-router';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { StatusBar } from 'expo-status-bar';
+import { NotificationProvider } from '@/components/NotificationProvider';
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <NotificationProvider>
+        <StatusBar style="auto" />
+        <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: '#1a1a1a',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
+        >
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/* Rotas são detectadas automaticamente pelo Expo Router */}
+          <Stack.Screen name="profile/edit" options={{ title: 'Editar Perfil' }} />
+          <Stack.Screen name="admin" options={{ headerShown: false }} />
+        </Stack>
+      </NotificationProvider>
+    </AuthProvider>
+  );
+}
+

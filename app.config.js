@@ -1,0 +1,39 @@
+// Configuração alternativa para Expo
+// Este arquivo pode ajudar a resolver problemas de build
+
+module.exports = {
+  expo: {
+    name: "Futebol Legends",
+    slug: "futebol-legends",
+    version: "1.0.0",
+    orientation: "portrait",
+    userInterfaceStyle: "light",
+    assetBundlePatterns: ["**/*"],
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "com.futebollegends.app"
+    },
+    android: {
+      package: "com.futebollegends.app",
+      permissions: [
+        "android.permission.INTERNET",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    plugins: [
+      "expo-router",
+      "expo-notifications"
+    ],
+    scheme: "futebol-legends",
+    extra: {
+      router: {
+        origin: false
+      },
+      eas: {
+        projectId: "2b772c4f-181f-483e-a7a3-435f98665aa9"
+      }
+    }
+  }
+};
+
