@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, checkSupabaseConnection } from '@/lib/supabase';
 import { User } from '@/types';
 
 interface AuthContextType {
@@ -157,31 +157,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) {
-      // Melhorar mensagens de erro
-      let errorMessage = error.message;
+    try {
+      // Verificar conexão antes de tentar login
+      const connectionCheck = await checkSupabaseConnection();
+      if (!connectionCheck) {
+        throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão com a internet.');
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      if (error.message.includes('Invalid login credentials')) {
-        errorMessage = 'Email ou senha incorretos';
-      } else if (error.message.includes('Email not confirmed') || error.message.includes('email_not_confirmed')) {
-        errorMessage = 'Por favor, verifique seu email antes de fazer login. Verifique sua caixa de entrada e spam.';
-      } else if (error.status === 400) {
-        errorMessage = 'Dados inválidos. Verifique seu email e senha';
+      if (error) {
+        // Melhorar mensagens de erro
+        let errorMessage = error.message;
+        
+        // Erros de rede
+        if (error.message.includes('Network request failed') || 
+            error.message.includes('Failed to fetch') ||
+            error.message.includes('NetworkError') ||
+            error.code === 'ECONNREFUSED' ||
+            error.code === 'ETIMEDOUT') {
+          errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+        } else if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Email ou senha incorretos';
+        } else if (error.message.includes('Email not confirmed') || error.message.includes('email_not_confirmed')) {
+          errorMessage = 'Por favor, verifique seu email antes de fazer login. Verifique sua caixa de entrada e spam.';
+        } else if (error.status === 400) {
+          errorMessage = 'Dados inválidos. Verifique seu email e senha';
+        }
+        
+        console.error('Login error:', {
+          message: error.message,
+          code: error.code,
+          status: error.status,
+        });
+        
+        const customError = new Error(errorMessage);
+        (customError as any).originalError = error;
+        throw customError;
       }
       
-      const customError = new Error(errorMessage);
-      (customError as any).originalError = error;
-      throw customError;
-    }
-    
-    // Aguardar um pouco para garantir que a sessão está estabelecida
-    if (data.session) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Aguardar um pouco para garantir que a sessão está estabelecida
+      if (data.session) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    } catch (error: any) {
+      // Capturar erros de rede que não vêm do Supabase
+      if (error.message?.includes('Network request failed') || 
+          error.message?.includes('Failed to fetch') ||
+          error.name === 'TypeError' && error.message?.includes('fetch')) {
+        throw new Error('Erro de conexão. Verifique sua internet e tente novamente. Se o problema persistir, verifique se as credenciais do Supabase estão configuradas corretamente no build.');
+      }
+      throw error;
     }
   };
 

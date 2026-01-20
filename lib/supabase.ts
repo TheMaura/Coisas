@@ -55,11 +55,25 @@ if (Platform.OS === 'web') {
 }
 
 // Credenciais do Supabase - projeto existente
+// IMPORTANTE: No build do APK, as variáveis de ambiente devem estar no eas.json
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://lrkqhubivgozjkcdbisg.supabase.co';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxya3FodWJpdmdvemprY2RiaXNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxNDE0NTksImV4cCI6MjA4MjcxNzQ1OX0.xQxrTGAp3Vod_lvnYwbPdFcmX2iyN7patNQ1OjWEAPU';
 
+// Log para debug (remover em produção se necessário)
+if (__DEV__) {
+  console.log('🔧 Supabase Config:', {
+    url: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MISSING',
+    hasKey: !!supabaseAnonKey,
+    envUrl: !!process.env.EXPO_PUBLIC_SUPABASE_URL,
+    envKey: !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+  });
+}
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  console.error('❌ Missing Supabase environment variables');
+  console.error('URL:', supabaseUrl ? 'OK' : 'MISSING');
+  console.error('Key:', supabaseAnonKey ? 'OK' : 'MISSING');
+  throw new Error('Missing Supabase environment variables. Verifique se as variáveis estão configuradas no eas.json para o build.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -85,16 +99,33 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Função para verificar a conexão com o Supabase
-export const checkSupabaseConnection = async () => {
+export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.from('legends').select('count').limit(1);
+    // Tentar uma query simples
+    const { data, error } = await supabase
+      .from('legends')
+      .select('count')
+      .limit(1);
+    
     if (error) {
       console.error('Erro ao conectar com Supabase:', error);
-      return false;
+      // Se for erro de rede, retornar false
+      if (error.message?.includes('Network request failed') || 
+          error.message?.includes('Failed to fetch')) {
+        return false;
+      }
+      // Outros erros podem ser aceitáveis (ex: tabela não existe)
+      return true; // Se chegou aqui, a conexão funcionou
     }
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro de conexão com Supabase:', error);
+    // Verificar se é erro de rede
+    if (error.message?.includes('Network request failed') || 
+        error.message?.includes('Failed to fetch') ||
+        error.name === 'TypeError') {
+      return false;
+    }
     return false;
   }
 };
