@@ -170,11 +170,4 @@ futebol-legends/
 - Autenticação segura com Supabase Auth
 - Políticas de acesso configuradas por perfil
 
-## 📝 Licença
-
-ISC
-
-## 👤 Autor
-
-Lizender Mendonça - Turma A1 5° ano
 
